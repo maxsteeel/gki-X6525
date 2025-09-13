@@ -1,5 +1,5 @@
 # Nombre del workflow
-name: Build GKI Kernel with KernelSU (v15 - The Official Way)
+name: Build GKI Kernel with KernelSU (v16 - The Fusion)
 
 # Cómo se activa este workflow
 on:
@@ -30,25 +30,28 @@ jobs:
           repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4-lts --no-repo-verify
           repo sync -c --no-tags --no-clone-bundle -j$(nproc --all)
 
-      # Paso 4: Integrar KernelSU
-      - name: 4. Integrate KernelSU
+      # Paso 4 (LA CLAVE): Integrar una VERSIÓN COMPATIBLE de KernelSU
+      - name: 4. Integrate Compatible KernelSU (v0.9.5)
         run: |
           cd gki_kernel
-          curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
+          # Clonamos el repositorio
+          git clone https://github.com/tiann/KernelSU.git
+          # Nos movemos a la versión v0.9.5, que es compatible con el kernel 5.4
+          cd KernelSU && git checkout v0.9.5 && cd ..
+          # Ejecutamos el script de instalación desde nuestra copia local
+          bash KernelSU/kernel/setup.sh
 
-      # Paso 5 (NUEVO): Crear el fragmento de configuración de KernelSU
+      # Paso 5: Crear el fragmento de configuración de KernelSU
       - name: 5. Create KernelSU Config Fragment
         run: |
           cd gki_kernel
-          # Creamos nuestra "nota adhesiva"
           echo "CONFIG_KERNEL_SU=y" > kernelsu.fragment
 
-      # Paso 6: Compilar el Kernel (usando el fragmento)
+      # Paso 6: Compilar el Kernel (usando el método oficial del fragmento)
       - name: 6. Build Kernel
         run: |
           cd gki_kernel
           while true; do echo "Compilación en progreso - $(date)"; sleep 300; done &
-          # Le decimos al sistema de compilación que use nuestro fragmento
           GKI_DEFCONFIG_FRAGMENT=kernelsu.fragment BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
 
       # Paso 7: Subir el artefacto
