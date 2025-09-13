@@ -1,5 +1,5 @@
 # Nombre del workflow
-name: Build GKI Kernel with KernelSU (v16 - The Fusion)
+name: Build GKI Kernel with KernelSU (v18 - Safe & Complete)
 
 # Cómo se activa este workflow
 on:
@@ -30,7 +30,7 @@ jobs:
           repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4-lts --no-repo-verify
           repo sync -c --no-tags --no-clone-bundle -j$(nproc --all)
 
-      # Paso 4 (LA CLAVE): Integrar una VERSIÓN COMPATIBLE de KernelSU
+      # Paso 4 (SEGURO): Integrar una VERSIÓN COMPATIBLE de KernelSU
       - name: 4. Integrate Compatible KernelSU (v0.9.5)
         run: |
           cd gki_kernel
@@ -41,11 +41,13 @@ jobs:
           # Ejecutamos el script de instalación desde nuestra copia local
           bash KernelSU/kernel/setup.sh
 
-      # Paso 5: Crear el fragmento de configuración de KernelSU
+      # Paso 5 (COMPLETO): Crear el fragmento de configuración con TODAS las dependencias
       - name: 5. Create KernelSU Config Fragment
         run: |
           cd gki_kernel
+          # Creamos nuestra "nota adhesiva" con la invitación VIP completa
           echo "CONFIG_KERNEL_SU=y" > kernelsu.fragment
+          echo "CONFIG_PROC_FS=y" >> kernelsu.fragment
 
       # Paso 6: Compilar el Kernel (usando el método oficial del fragmento)
       - name: 6. Build Kernel
