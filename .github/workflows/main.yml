@@ -1,5 +1,5 @@
 # Nombre del workflow
-name: Build GKI Kernel with KernelSU (v5)
+name: Build GKI Kernel with KernelSU (v6)
 
 # Cómo se activa este workflow
 on:
@@ -23,43 +23,37 @@ jobs:
           chmod a+x ~/bin/repo
           echo "$HOME/bin" >> $GITHUB_PATH
 
-      # Paso 3: Descargar el código fuente del Kernel (COMPLETO, sin --depth=1)
+      # Paso 3: Descargar el código fuente del Kernel (Completo)
       - name: 3. Download Kernel Source
         run: |
           mkdir gki_kernel && cd gki_kernel
           repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4-lts --no-repo-verify
           repo sync -c --no-tags --no-clone-bundle -j$(nproc --all)
 
-      # Paso 4: Listar archivos para depuración
-      - name: 4. Verify Directory Structure
+      # Paso 4: Integrar KernelSU
+      - name: 4. Integrate KernelSU
         run: |
           cd gki_kernel
-          echo "Contenido del directorio gki_kernel:"
-          ls -la
-          echo "Contenido del directorio scripts:"
-          ls -la scripts
-
-      # Paso 5: Integrar KernelSU
-      - name: 5. Integrate KernelSU
-        run: |
-          cd gki_kernel
+          # El script de KernelSU se ejecuta desde la raíz, está bien
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
 
-      # Paso 6: Configurar KernelSU
-      - name: 6. Configure KernelSU
+      # Paso 5: Configurar KernelSU (con la ruta corregida)
+      - name: 5. Configure KernelSU
         run: |
           cd gki_kernel
-          scripts/config --file common/arch/arm64/configs/gki_defconfig -e KERNEL_SU
+          # CORRECCIÓN: Apuntamos a la ruta correcta del script y del archivo de configuración
+          common/scripts/config --file common/arch/arm64/configs/gki_defconfig -e KERNEL_SU
 
-      # Paso 7: Compilar el Kernel (con "guardián" de actividad)
-      - name: 7. Build Kernel
+      # Paso 6: Compilar el Kernel (con "guardián" de actividad)
+      - name: 6. Build Kernel
         run: |
           cd gki_kernel
           while true; do echo "Compilación en progreso - $(date)"; sleep 300; done &
+          # El script build.sh se ejecuta desde la raíz, está bien
           BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
 
-      # Paso 8: Subir el artefacto
-      - name: 8. Upload Artifact
+      # Paso 7: Subir el artefacto
+      - name: 7. Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: boot-image
