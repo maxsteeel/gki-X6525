@@ -30,17 +30,17 @@ jobs:
           repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4-lts --no-repo-verify
           repo sync -c --no-tags --no-clone-bundle -j$(nproc --all)
 
-      # Paso 4 (NUEVO): Integración Manual de KernelSU
+      # Paso 4 (CORREGIDO): Integración Manual de KernelSU con Rutas Correctas
       - name: 4. Manually Integrate KernelSU
         run: |
           cd gki_kernel
           # Descargamos el código fuente de KernelSU
           git clone https://github.com/tiann/KernelSU.git
-          # Movemos los archivos de KernelSU a la ubicación correcta
-          mv KernelSU/kernel drivers/kernelsu
-          # Le decimos al sistema de compilación que existe un nuevo driver
-          echo 'source "drivers/kernelsu/Kconfig"' >> drivers/Kconfig
-          echo 'obj-$(CONFIG_KERNEL_SU) += kernelsu/' >> drivers/Makefile
+          # Movemos los archivos de KernelSU a la ubicación correcta: common/drivers/
+          mv KernelSU/kernel common/drivers/kernelsu
+          # Le decimos al sistema de compilación que existe un nuevo driver, en la ruta correcta
+          echo 'source "drivers/kernelsu/Kconfig"' >> common/drivers/Kconfig
+          echo 'obj-$(CONFIG_KERNEL_SU) += kernelsu/' >> common/drivers/Makefile
           # Activamos KernelSU en la configuración por defecto
           echo "CONFIG_KERNEL_SU=y" >> common/arch/arm64/configs/gki_defconfig
 
