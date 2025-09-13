@@ -3,7 +3,7 @@ name: Build GKI Kernel with KernelSU
 
 # Cómo se activa este workflow
 on:
-  workflow_dispatch: # Permite iniciarlo manualmente desde la pestaña "Actions"
+  workflow_dispatch: # Permite iniciarlo manually desde la pestaña "Actions"
 
 # Definimos los trabajos a realizar
 jobs:
@@ -30,7 +30,6 @@ jobs:
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
 
       # Paso 4: Crear el archivo de configuración para KernelSU
-      # No podemos usar el menú interactivo aquí, así que lo activamos con un script
       - name: 4. Configure KernelSU
         run: |
           cd gki_kernel
@@ -44,7 +43,7 @@ jobs:
       
       # Paso 6: Subir el boot.img resultante como un "artefacto"
       - name: 6. Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4 # <-- ¡AQUÍ ESTÁ LA CORRECCIÓN!
         with:
           name: boot-image
           path: gki_kernel/out/android-5.4-lts/dist/boot.img
