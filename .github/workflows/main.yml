@@ -1,5 +1,5 @@
 # Nombre del workflow
-name: Build GKI Kernel with KernelSU (v14 - The Master Key)
+name: Build GKI Kernel with KernelSU (v15 - The Official Way)
 
 # Cómo se activa este workflow
 on:
@@ -36,18 +36,20 @@ jobs:
           cd gki_kernel
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
 
-      # Paso 5: Activar KernelSU en la configuración
-      - name: 5. Configure KernelSU
+      # Paso 5 (NUEVO): Crear el fragmento de configuración de KernelSU
+      - name: 5. Create KernelSU Config Fragment
         run: |
           cd gki_kernel
-          echo "CONFIG_KERNEL_SU=y" >> common/arch/arm64/configs/gki_defconfig
+          # Creamos nuestra "nota adhesiva"
+          echo "CONFIG_KERNEL_SU=y" > kernelsu.fragment
 
-      # Paso 6: Compilar el Kernel (con "guardián" y la "llave maestra")
+      # Paso 6: Compilar el Kernel (usando el fragmento)
       - name: 6. Build Kernel
         run: |
           cd gki_kernel
           while true; do echo "Compilación en progreso - $(date)"; sleep 300; done &
-          SKIP_DEFCONFIG_CHECK=1 BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
+          # Le decimos al sistema de compilación que use nuestro fragmento
+          GKI_DEFCONFIG_FRAGMENT=kernelsu.fragment BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
 
       # Paso 7: Subir el artefacto
       - name: 7. Upload Artifact
