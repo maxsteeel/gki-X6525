@@ -1,5 +1,5 @@
 # Nombre del workflow
-name: Build GKI Kernel with KernelSU (v18 - The Final Patch)
+name: Build GKI Kernel with KernelSU (v19 - The Final Patch)
 
 # Cómo se activa este workflow
 on:
