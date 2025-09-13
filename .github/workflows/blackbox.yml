@@ -11,7 +11,7 @@ jobs:
     env:
       ARCH: arm64
       KERNEL_BRANCH: android12-5.4
-      KERNEL_REPO: https://android.googlesource.com/kernel/common
+      KERNEL_REPO: https://android.googlesource.com/kernel/manifest
       KERNELSU_REPO: https://github.com/KernelSU/KernelSU.git
       KERNELSU_BRANCH: main
       CONFIG_FILE: common/build.config.gki.aarch64
