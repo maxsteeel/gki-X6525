@@ -27,16 +27,13 @@ jobs:
           mkdir gki_kernel && cd gki_kernel
           while true; do echo "Sync in progress, this will take a while... $(date)"; sleep 300; done &
           repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4 --no-repo-verify
-          # CORRECCIÓN CLAVE: Eliminamos '-c' para forzar una clonación completa. Es más lento pero necesario.
           repo sync --no-clone-bundle -j$(nproc --all)
       
       # Paso 4: Fijar el Kernel al commit de la versión 5.4.210
       - name: 4. Checkout Stable Kernel Commit
         run: |
           cd gki_kernel/common
-          # Comando de seguridad para asegurar que la copia no sea superficial.
-          git fetch --unshallow
-          # Checkout del commit exacto.
+          # Ahora que la clonación es completa, este comando funcionará.
           git checkout d8c1c5a9a11f26422a5789f66085a53561a06282
           cd ../..
 
