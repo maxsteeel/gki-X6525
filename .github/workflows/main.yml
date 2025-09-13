@@ -5,7 +5,6 @@ name: Build GKI Kernel with KernelSU (Stable Commit)
 on:
   workflow_dispatch:
 
-# Definimos los trabajos a realizar
 jobs:
   build:
     name: Build Kernel
@@ -21,47 +20,48 @@ jobs:
         run: |
           mkdir -p ~/bin && curl -s https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo && chmod a+x ~/bin/repo && echo "$HOME/bin" >> $GITHUB_PATH
 
-      # Paso 3: Descargar el código fuente del Kernel (Clonación Completa)
-      - name: 3. Download Kernel Source (Full Depth)
+      # Paso 3: Descargar el código fuente del Kernel (con manifiesto modificado)
+      - name: 3. Download Kernel Source via Modified Manifest
         run: |
           mkdir gki_kernel && cd gki_kernel
-          while true; do echo "Sync in progress, this will take a while... $(date)"; sleep 300; done &
+          
+          # 1. Descargamos el manifiesto
           repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4 --no-repo-verify
+          
+          # 2. Modificamos el manifiesto para apuntar a la etiqueta GKI correcta
+          sed -i 's|path="common" name="kernel/common" revision="android12-5.4"|path="common" name="kernel/common" revision="android12-5.4.210_r00"|' .repo/manifest.xml
+          
+          # 3. Sincronizamos. Esto será mucho más rápido ahora.
+          while true; do echo "Sync in progress... $(date)"; sleep 300; done &
           repo sync --no-clone-bundle -j$(nproc --all)
       
-      # Paso 4: Fijar el Kernel al commit de la versión 5.4.210
-      - name: 4. Checkout Stable Kernel Commit
-        run: |
-          cd gki_kernel/common
-          # Ahora que la clonación es completa, este comando funcionará.
-          git checkout d8c1c5a9a11f26422a5789f66085a53561a06282
-          cd ../..
+      # PASO 4 ELIMINADO: El 'git checkout' ya no es necesario.
 
-      # Paso 5: Integrar KernelSU (versión estable por defecto)
-      - name: 5. Integrate KernelSU
+      # Paso 4: Integrar KernelSU (versión estable por defecto)
+      - name: 4. Integrate KernelSU
         run: |
           cd gki_kernel
           git clone https://github.com/tiann/KernelSU.git
           bash KernelSU/kernel/setup.sh
 
-      # Paso 6: Crear el fragmento de configuración para KernelSU
-      - name: 6. Create KernelSU Config Fragment
+      # Paso 5: Crear el fragmento de configuración para KernelSU
+      - name: 5. Create KernelSU Config Fragment
         run: |
           cd gki_kernel
           echo "CONFIG_KERNEL_SU=y" > kernelsu.fragment
           echo "CONFIG_PROC_FS=y" >> kernelsu.fragment
 
-      # Paso 7: Compilar el Kernel
-      - name: 7. Build Kernel
+      # Paso 6: Compilar el Kernel
+      - name: 6. Build Kernel
         run: |
           cd gki_kernel
           while true; do echo "Build in progress - $(date)"; sleep 300; done &
           GKI_DEFCONFIG_FRAGMENT=kernelsu.fragment BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
 
-      # Paso 8: Subir el artefacto de compilación (boot.img)
-      - name: 8. Upload Artifact
+      # Paso 7: Subir el artefacto de compilación (boot.img)
+      - name: 7. Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: boot-image-gki-5.4.210-kernelsu
-          path: gki_kernel/out/android12-5.4/dist/boot.img
+          name: boot-image-gki-5.4.210_r00-kernelsu
+          path: gki_kernel/out/common-android12-5.4/dist/boot.img
           
