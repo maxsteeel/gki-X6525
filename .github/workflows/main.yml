@@ -1,5 +1,5 @@
 # Nombre del workflow
-name: Build GKI Kernel with KernelSU 
+name: Build GKI Kernel with KernelSU (v14 - The Master Key)
 
 # Cómo se activa este workflow
 on:
