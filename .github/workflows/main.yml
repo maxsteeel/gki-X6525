@@ -59,7 +59,6 @@ jobs:
           cd gki_kernel
           while true; do echo "Build in progress - $(date)"; sleep 300; done &
           GKI_DEFCONFIG_FRAGMENT=kernelsu.fragment LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
-          ls -R gki_kernel/out
 
       # Paso 7: Subir el artefacto de compilación (boot.img)
       - name: 7. Upload Artifact
