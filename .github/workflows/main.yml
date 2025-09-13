@@ -1,20 +1,22 @@
 # Nombre del workflow
-name: Build GKI Kernel with KernelSU (v19 - The Final Patch)
+name: Build GKI Kernel with KernelSU (v20 - Final Syntax)
 
 # Cómo se activa este workflow
 on:
   workflow_dispatch:
 
-jobs
+# Definimos los trabajos a realizar
+jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
-      # Pasos 1, 2, 3 sin cambios
+      # Paso 1: Instalar dependencias
       - name: 1. Install Dependencies
         run: |
           sudo apt update
           sudo apt install -y git bc bison build-essential curl flex g++-multilib gcc-multilib gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev libelf-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
 
+      # Paso 2: Descargar y configurar una versión local de "repo"
       - name: 2. Setup Repo Tool
         run: |
           mkdir -p ~/bin
@@ -22,6 +24,7 @@ jobs
           chmod a+x ~/bin/repo
           echo "$HOME/bin" >> $GITHUB_PATH
 
+      # Paso 3: Descargar el código fuente del Kernel
       - name: 3. Download Kernel Source
         run: |
           mkdir gki_kernel && cd gki_kernel
@@ -36,11 +39,10 @@ jobs
           cd KernelSU && git checkout v0.9.5 && cd ..
           bash KernelSU/kernel/setup.sh
 
-      # Paso 5 (NUEVO Y CRUCIAL): Parchear el código de KernelSU para evitar el conflicto
+      # Paso 5: Parchear el código de KernelSU para evitar el conflicto
       - name: 5. Patch KernelSU Source Code
         run: |
           cd gki_kernel
-          # Renombramos todas las instancias de 'current_sid' a 'ksu_current_sid' en el archivo conflictivo
           sed -i 's/current_sid/ksu_current_sid/g' KernelSU/kernel/selinux/selinux.c
 
       # Paso 6: Crear el fragmento de configuración con TODAS las dependencias
