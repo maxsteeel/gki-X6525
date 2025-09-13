@@ -1,5 +1,5 @@
 # Nombre del workflow
-name: Build GKI Kernel with KernelSU
+name: Build GKI Kernel with KernelSU 
 
 # Cómo se activa este workflow
 on:
@@ -36,27 +36,21 @@ jobs:
           cd gki_kernel
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
 
-      # Paso 5: Configurar KernelSU en memoria
-      - name: 5. Configure KernelSU
+      # Paso 5 (NUEVO): Modificar la configuración directamente
+      - name: 5. Manually Patch Defconfig
         run: |
           cd gki_kernel
-          common/scripts/config --file common/arch/arm64/configs/gki_defconfig -e KERNEL_SU
+          echo "CONFIG_KERNEL_SU=y" >> common/arch/arm64/configs/gki_defconfig
 
-      # Paso 6 (NUEVO): Actualizar el archivo de configuración oficial
-      - name: 6. Update Defconfig
-        run: |
-          cd gki_kernel
-          BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh savedefconfig
-
-      # Paso 7: Compilar el Kernel (con "guardián" de actividad)
-      - name: 7. Build Kernel
+      # Paso 6: Compilar el Kernel (con "guardián" de actividad)
+      - name: 6. Build Kernel
         run: |
           cd gki_kernel
           while true; do echo "Compilación en progreso - $(date)"; sleep 300; done &
           BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
 
-      # Paso 8: Subir el artefacto
-      - name: 8. Upload Artifact
+      # Paso 7: Subir el artefacto
+      - name: 7. Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: boot-image
