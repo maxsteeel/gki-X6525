@@ -1,5 +1,5 @@
 # Nombre del workflow
-name: Build GKI Kernel with KernelSU
+name: Build GKI Kernel with KernelSU 
 
 # Cómo se activa este workflow
 on:
@@ -30,39 +30,35 @@ jobs:
           repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4-lts --no-repo-verify
           repo sync -c --no-tags --no-clone-bundle -j$(nproc --all)
 
-      # Paso 4 (MODIFICADO): Integrar una versión compatible de KernelSU
-      - name: 4. Integrate Compatible KernelSU
+      # Paso 4 (NUEVO): Integración Manual de KernelSU
+      - name: 4. Manually Integrate KernelSU
         run: |
           cd gki_kernel
-          # Clonamos el repositorio y nos movemos a una versión específica (tag v0.9.5)
+          # Descargamos el código fuente de KernelSU
           git clone https://github.com/tiann/KernelSU.git
-          cd KernelSU
-          git checkout v0.9.5
-          cd ..
-          # Ahora ejecutamos el script de instalación desde nuestra copia local
-          bash KernelSU/kernel/setup.sh
+          # Movemos los archivos de KernelSU a la ubicación correcta
+          mv KernelSU/kernel drivers/kernelsu
+          # Le decimos al sistema de compilación que existe un nuevo driver
+          echo 'source "drivers/kernelsu/Kconfig"' >> drivers/Kconfig
+          echo 'obj-$(CONFIG_KERNEL_SU) += kernelsu/' >> drivers/Makefile
+          # Activamos KernelSU en la configuración por defecto
+          echo "CONFIG_KERNEL_SU=y" >> common/arch/arm64/configs/gki_defconfig
 
-      # Paso 5: Modificar el gen de KernelSU para que esté activado por defecto
-      - name: 5. Force Enable KernelSU by Default
-        run: |
-          cd gki_kernel
-          sed -i 's/default n/default y/' KernelSU/kernel/Kconfig
-
-      # Paso 6: Crear archivo bootconfig vacío
-      - name: 6. Create Empty Bootconfig
+      # Paso 5: Crear archivo bootconfig vacío
+      - name: 5. Create Empty Bootconfig
         run: |
           cd gki_kernel
           touch common/arch/arm64/boot/bootconfig
 
-      # Paso 7: Compilar el Kernel (con "guardián" de actividad)
-      - name: 7. Build Kernel
+      # Paso 6: Compilar el Kernel (con "guardián" de actividad)
+      - name: 6. Build Kernel
         run: |
           cd gki_kernel
           while true; do echo "Compilación en progreso - $(date)"; sleep 300; done &
           BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
 
-      # Paso 8: Subir el artefacto
-      - name: 8. Upload Artifact
+      # Paso 7: Subir el artefacto
+      - name: 7. Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: boot-image
