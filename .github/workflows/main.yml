@@ -26,7 +26,7 @@ jobs:
         run: |
           mkdir gki_kernel && cd gki_kernel
           repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4 --no-repo-verify
-          repo sync -c --no-tags --no-clone-bundle -j$(nproc --all)
+          repo sync -c --no-clone-bundle -j$(nproc --all)
       
       # Paso 4: Fijar el Kernel a una versión estable conocida (5.4.210)
       - name: 4. Checkout Stable Kernel Version
