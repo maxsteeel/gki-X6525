@@ -1,5 +1,5 @@
 # Nombre del workflow
-name: Build GKI Kernel with KernelSU (Stable Commit)
+name: Build GKI Kernel with KernelSU (Stable Combo)
 
 # Cómo se activa este workflow
 on:
@@ -20,28 +20,24 @@ jobs:
         run: |
           mkdir -p ~/bin && curl -s https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo && chmod a+x ~/bin/repo && echo "$HOME/bin" >> $GITHUB_PATH
 
-      # Paso 3: Descargar el código fuente del Kernel (con manifiesto modificado)
-      - name: 3. Download Kernel Source via Modified Manifest
+      # Paso 3: Descargar el código fuente del Kernel
+      - name: 3. Download Kernel Source
         run: |
           mkdir gki_kernel && cd gki_kernel
-          
-          # 1. Descargamos el manifiesto
           repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4 --no-repo-verify
-          
-          # 2. Modificamos el manifiesto para apuntar a la etiqueta GKI correcta
           sed -i 's|path="common" name="kernel/common" revision="android12-5.4"|path="common" name="kernel/common" revision="android12-5.4.210_r00"|' .repo/manifest.xml
-          
-          # 3. Sincronizamos. Esto será mucho más rápido ahora.
           while true; do echo "Sync in progress... $(date)"; sleep 300; done &
-          repo sync --no-clone-bundle -j$(nproc --all)
-      
-      # PASO 4 ELIMINADO: El 'git checkout' ya no es necesario.
+          repo sync -c --no-clone-bundle -j$(nproc --all)
 
-      # Paso 4: Integrar KernelSU (versión estable por defecto)
-      - name: 4. Integrate KernelSU
+      # Paso 4: Integrar la versión v0.5.2 de KernelSU
+      - name: 4. Integrate KernelSU v0.5.2
         run: |
           cd gki_kernel
           git clone https://github.com/tiann/KernelSU.git
+          cd KernelSU
+          # CORRECCIÓN: Nos movemos a la etiqueta de la versión v0.5.2
+          git checkout v0.5.2
+          cd ..
           bash KernelSU/kernel/setup.sh
 
       # Paso 5: Crear el fragmento de configuración para KernelSU
@@ -49,26 +45,20 @@ jobs:
         run: |
           cd gki_kernel
           echo "CONFIG_KERNEL_SU=y" > kernelsu.fragment
-          echo "CONFIG_PROC_FS=y" >> kernelsu.fragment
+          echo "CONFIG_KSU=y" > kernelsu.fragment
+          echo "CONFIG_PROC_FS=y" > kernelsu.fragment
 
-      # Paso 6: Aplicar parche de compatibilidad para 'current_sid'
-      - name: 6. Patch KernelSU for 'current_sid' redefinition
-        run: |
-          cd gki_kernel/common
-          sed -i 's/static inline u32 current_sid(void)/static inline u32 ksu_current_sid(void)/g' drivers/kernelsu/selinux/selinux.c
-          sed -i 's/current_sid()/ksu_current_sid()/g' drivers/kernelsu/selinux/selinux.c
-        
-      # Paso 7: Compilar el Kernel
-      - name: 7. Build Kernel
+      # Paso 6: Compilar el Kernel
+      - name: 6. Build Kernel
         run: |
           cd gki_kernel
           while true; do echo "Build in progress - $(date)"; sleep 300; done &
           GKI_DEFCONFIG_FRAGMENT=kernelsu.fragment BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
 
-      # Paso 8: Subir el artefacto de compilación (boot.img)
-      - name: 8. Upload Artifact
+      # Paso 7: Subir el artefacto de compilación (boot.img)
+      - name: 7. Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: boot-image-gki-5.4.210_r00-kernelsu
+          name: boot-image-gki-5.4.210_r00-kernelsu_v0.5.2
           path: gki_kernel/out/common-android12-5.4/dist/boot.img
           
