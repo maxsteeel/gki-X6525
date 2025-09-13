@@ -65,5 +65,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: boot-image-gki-5.4.210_r00-kernelsu_v0.5.2
-          path: gki_kernel/out/android12-5.4/dist/boot.img
+          path: gki_kernel/out/android12-5.4/dist/arch/arm64/boot/Image
           
