@@ -51,8 +51,8 @@ jobs:
       - name: 5. Patch KernelSU for 'current_sid' redefinition
         run: |
           cd gki_kernel
-          sed -i 's/static inline u32 current_sid(void)/static inline u32 ksu_current_sid(void)/g' drivers/kernelsu/selinux/selinux.c
-          sed -i 's/current_sid()/ksu_current_sid()/g' drivers/kernelsu/selinux/selinux.c
+          sed -i 's/static inline u32 current_sid(void)/static inline u32 ksu_current_sid(void)/g' common/drivers/kernelsu/selinux/selinux.c
+          sed -i 's/current_sid()/ksu_current_sid()/g' common/drivers/kernelsu/selinux/selinux.c
 
       # Paso 6: Crear el fragmento de configuración para KernelSU
       - name: 6. Create KernelSU Config Fragment
