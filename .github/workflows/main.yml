@@ -1,5 +1,5 @@
 # Nombre del workflow
-name: Build GKI Kernel with KernelSU (v6)
+name: Build GKI Kernel with KernelSU
 
 # Cómo se activa este workflow
 on:
@@ -23,7 +23,7 @@ jobs:
           chmod a+x ~/bin/repo
           echo "$HOME/bin" >> $GITHUB_PATH
 
-      # Paso 3: Descargar el código fuente del Kernel (Completo)
+      # Paso 3: Descargar el código fuente del Kernel
       - name: 3. Download Kernel Source
         run: |
           mkdir gki_kernel && cd gki_kernel
@@ -34,26 +34,29 @@ jobs:
       - name: 4. Integrate KernelSU
         run: |
           cd gki_kernel
-          # El script de KernelSU se ejecuta desde la raíz, está bien
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
 
-      # Paso 5: Configurar KernelSU (con la ruta corregida)
+      # Paso 5: Configurar KernelSU en memoria
       - name: 5. Configure KernelSU
         run: |
           cd gki_kernel
-          # CORRECCIÓN: Apuntamos a la ruta correcta del script y del archivo de configuración
           common/scripts/config --file common/arch/arm64/configs/gki_defconfig -e KERNEL_SU
 
-      # Paso 6: Compilar el Kernel (con "guardián" de actividad)
-      - name: 6. Build Kernel
+      # Paso 6 (NUEVO): Actualizar el archivo de configuración oficial
+      - name: 6. Update Defconfig
+        run: |
+          cd gki_kernel
+          BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh savedefconfig
+
+      # Paso 7: Compilar el Kernel (con "guardián" de actividad)
+      - name: 7. Build Kernel
         run: |
           cd gki_kernel
           while true; do echo "Compilación en progreso - $(date)"; sleep 300; done &
-          # El script build.sh se ejecuta desde la raíz, está bien
           BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
 
-      # Paso 7: Subir el artefacto
-      - name: 7. Upload Artifact
+      # Paso 8: Subir el artefacto
+      - name: 8. Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: boot-image
