@@ -64,31 +64,4 @@ jobs:
         with:
           name: boot-image-gki-5.4.210_r00-kernelsu_v0.5.2
           path: gki_kernel/out/common-android12-5.4/dist/boot.img
-                    cd KernelSU
-          # CORRECCIÓN: Nos movemos a la etiqueta de la versión v0.5.2
-          git checkout v0.5.2
-          cd ..
-          bash KernelSU/kernel/setup.sh
-
-      # Paso 5: Crear el fragmento de configuración para KernelSU
-      - name: 5. Create KernelSU Config Fragment
-        run: |
-          cd gki_kernel
-          echo "CONFIG_KERNEL_SU=y" > kernelsu.fragment
-          echo "CONFIG_KSU=y" > kernelsu.fragment
-          echo "CONFIG_PROC_FS=y" > kernelsu.fragment
-
-      # Paso 6: Compilar el Kernel
-      - name: 6. Build Kernel
-        run: |
-          cd gki_kernel
-          while true; do echo "Build in progress - $(date)"; sleep 300; done &
-          GKI_DEFCONFIG_FRAGMENT=kernelsu.fragment BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
-
-      # Paso 7: Subir el artefacto de compilación (boot.img)
-      - name: 7. Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: boot-image-gki-5.4.210_r00-kernelsu_v0.5.2
-          path: gki_kernel/out/common-android12-5.4/dist/boot.img
           
