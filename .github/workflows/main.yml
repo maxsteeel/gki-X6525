@@ -40,6 +40,42 @@ jobs:
           git clone https://github.com/tiann/KernelSU.git
           bash KernelSU/kernel/setup.sh
 
+      # Paso 5: Aplicar parche para la redefinición de 'current_sid'
+      # La rama del kernel seleccionada ya define 'current_sid' en un header.
+      # Renombramos la función en el código de KernelSU para evitar el conflicto.
+      - name: 5. Patch KernelSU for 'current_sid' redefinition
+        run: |
+          cd gki_kernel
+          sed -i 's/static inline u32 current_sid(void)/static inline u32 ksu_current_sid(void)/g' drivers/kernelsu/selinux/selinux.c
+          sed -i 's/current_sid()/ksu_current_sid()/g' drivers/kernelsu/selinux/selinux.c
+
+      # Paso 6: Crear el fragmento de configuración para KernelSU
+      - name: 6. Create KernelSU Config Fragment
+        run: |
+          cd gki_kernel
+          echo "CONFIG_KERNEL_SU=y" > kernelsu.fragment
+          echo "CONFIG_PROC_FS=y" >> kernelsu.fragment
+
+      # Paso 7: Compilar el Kernel
+      - name: 7. Build Kernel
+        run: |
+          cd gki_kernel
+          # El bucle while mantiene el job activo durante la compilación
+          while true; do echo "Build in progress - $(date)"; sleep 300; done &
+          GKI_DEFCONFIG_FRAGMENT=kernelsu.fragment BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
+
+      # Paso 8: Subir el artefacto de compilación (boot.img)
+      - name: 8. Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: boot-image-gki-5.4-kernelsu
+          path: gki_kernel/out/android-5.4/dist/boot.img
+      - name: 4. Integrate Latest KernelSU
+        run: |
+          cd gki_kernel
+          git clone https://github.com/tiann/KernelSU.git
+          bash KernelSU/kernel/setup.sh
+
       # PASO 5 ELIMINADO: El parche manual con 'sed' ya no es necesario.
 
       # Paso 5: Crear el fragmento de configuración para KernelSU
