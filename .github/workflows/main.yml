@@ -36,11 +36,12 @@ jobs:
           cd gki_kernel
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
 
-      # Paso 5 (NUEVO): Modificar la configuración directamente
-      - name: 5. Manually Patch Defconfig
+      # Paso 5 (NUEVO): Modificar el gen de KernelSU para que esté activado por defecto
+      - name: 5. Force Enable KernelSU by Default
         run: |
           cd gki_kernel
-          echo "CONFIG_KERNEL_SU=y" >> common/arch/arm64/configs/gki_defconfig
+          # Reemplazamos 'default n' (desactivado) por 'default y' (activado) en el archivo de configuración de KernelSU
+          sed -i 's/default n/default y/' KernelSU/kernel/Kconfig
 
       # Paso 6: Compilar el Kernel (con "guardián" de actividad)
       - name: 6. Build Kernel
