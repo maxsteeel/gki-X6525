@@ -30,32 +30,24 @@ jobs:
           repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4-lts --no-repo-verify
           repo sync -c --no-tags --no-clone-bundle -j$(nproc --all)
 
-      # Paso 4 (CORREGIDO): Integración Manual de KernelSU con Rutas Correctas
-      - name: 4. Manually Integrate KernelSU
+      # Paso 4: Integrar KernelSU
+      - name: 4. Integrate KernelSU
         run: |
           cd gki_kernel
-          # Descargamos el código fuente de KernelSU
-          git clone https://github.com/tiann/KernelSU.git
-          # Movemos los archivos de KernelSU a la ubicación correcta: common/drivers/
-          mv KernelSU/kernel common/drivers/kernelsu
-          # Le decimos al sistema de compilación que existe un nuevo driver, en la ruta correcta
-          echo 'source "drivers/kernelsu/Kconfig"' >> common/drivers/Kconfig
-          echo 'obj-$(CONFIG_KERNEL_SU) += kernelsu/' >> common/drivers/Makefile
-          # Activamos KernelSU en la configuración por defecto
+          curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
+
+      # Paso 5: Activar KernelSU en la configuración
+      - name: 5. Configure KernelSU
+        run: |
+          cd gki_kernel
           echo "CONFIG_KERNEL_SU=y" >> common/arch/arm64/configs/gki_defconfig
 
-      # Paso 5: Crear archivo bootconfig vacío
-      - name: 5. Create Empty Bootconfig
-        run: |
-          cd gki_kernel
-          touch common/arch/arm64/boot/bootconfig
-
-      # Paso 6: Compilar el Kernel (con "guardián" de actividad)
+      # Paso 6: Compilar el Kernel (con "guardián" y la "llave maestra")
       - name: 6. Build Kernel
         run: |
           cd gki_kernel
           while true; do echo "Compilación en progreso - $(date)"; sleep 300; done &
-          BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
+          SKIP_DEFCONFIG_CHECK=1 BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
 
       # Paso 7: Subir el artefacto
       - name: 7. Upload Artifact
