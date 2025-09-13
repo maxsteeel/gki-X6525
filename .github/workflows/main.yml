@@ -36,22 +36,27 @@ jobs:
           cd gki_kernel
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
 
-      # Paso 5 (NUEVO): Modificar el gen de KernelSU para que esté activado por defecto
+      # Paso 5: Modificar el gen de KernelSU para que esté activado por defecto
       - name: 5. Force Enable KernelSU by Default
         run: |
           cd gki_kernel
-          # Reemplazamos 'default n' (desactivado) por 'default y' (activado) en el archivo de configuración de KernelSU
           sed -i 's/default n/default y/' KernelSU/kernel/Kconfig
 
-      # Paso 6: Compilar el Kernel (con "guardián" de actividad)
-      - name: 6. Build Kernel
+      # Paso 6 (NUEVO): Crear archivo bootconfig vacío para evitar el error de empaquetado
+      - name: 6. Create Empty Bootconfig
+        run: |
+          cd gki_kernel
+          touch common/arch/arm64/boot/bootconfig
+
+      # Paso 7: Compilar el Kernel (con "guardián" de actividad)
+      - name: 7. Build Kernel
         run: |
           cd gki_kernel
           while true; do echo "Compilación en progreso - $(date)"; sleep 300; done &
           BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
 
-      # Paso 7: Subir el artefacto
-      - name: 7. Upload Artifact
+      # Paso 8: Subir el artefacto
+      - name: 8. Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: boot-image
