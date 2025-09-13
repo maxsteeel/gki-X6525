@@ -21,24 +21,26 @@ jobs:
         run: |
           mkdir -p ~/bin && curl -s https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo && chmod a+x ~/bin/repo && echo "$HOME/bin" >> $GITHUB_PATH
 
-      # Paso 3: Descargar el código fuente del Kernel
-      - name: 3. Download Kernel Source
+      # Paso 3: Descargar el código fuente del Kernel (Clonación Completa)
+      - name: 3. Download Kernel Source (Full Depth)
         run: |
           mkdir gki_kernel && cd gki_kernel
-          while true; do echo "Sync in progress, please wait... $(date)"; sleep 300; done &
+          while true; do echo "Sync in progress, this will take a while... $(date)"; sleep 300; done &
           repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4 --no-repo-verify
-          # Usamos -c para una descarga más rápida, ya que apuntaremos a un commit específico.
-          repo sync -c --no-clone-bundle -j$(nproc --all)
+          # CORRECCIÓN CLAVE: Eliminamos '-c' para forzar una clonación completa. Es más lento pero necesario.
+          repo sync --no-clone-bundle -j$(nproc --all)
       
-      # Paso 4: Fijar el Kernel a la versión 5.4.210 usando su commit hash
+      # Paso 4: Fijar el Kernel al commit de la versión 5.4.210
       - name: 4. Checkout Stable Kernel Commit
         run: |
           cd gki_kernel/common
-          # CORRECCIÓN DEFINITIVA: Usamos el hash del commit exacto para la versión 5.4.210
+          # Comando de seguridad para asegurar que la copia no sea superficial.
+          git fetch --unshallow
+          # Checkout del commit exacto.
           git checkout d8c1c5a9a11f26422a5789f66085a53561a06282
           cd ../..
 
-      # Paso 5: Integrar KernelSU (versión estable por defecto, sin parches)
+      # Paso 5: Integrar KernelSU (versión estable por defecto)
       - name: 5. Integrate KernelSU
         run: |
           cd gki_kernel
