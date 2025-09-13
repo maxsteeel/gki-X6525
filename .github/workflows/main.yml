@@ -50,8 +50,8 @@ jobs:
           echo "CONFIG_KERNEL_SU=y" > kernelsu.fragment
           echo "CONFIG_KSU=y" >> kernelsu.fragment
           echo "CONFIG_PROC_FS=y" >> kernelsu.fragment
-          echo "CONFIG_LTO_NONE=y" >> kernelsu.fragment
-          echo "# CONFIG_LTO_CLANG is not set" >> kernelsu.fragment
+          echo "CONFIG_LTO_CLANG_THIN=y" >> kernelsu.fragment
+          echo "# CONFIG_LTO_CLANG_FULL is not set" >> kernelsu.fragment
 
       # Paso 6: Compilar el Kernel
       - name: 6. Build Kernel
