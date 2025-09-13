@@ -3,7 +3,7 @@ name: Build GKI Kernel with KernelSU
 
 # Cómo se activa este workflow
 on:
-  workflow_dispatch: # Permite iniciarlo manually desde la pestaña "Actions"
+  workflow_dispatch: # Permite iniciarlo manualmente desde la pestaña "Actions"
 
 # Definimos los trabajos a realizar
 jobs:
@@ -21,6 +21,7 @@ jobs:
         run: |
           mkdir gki_kernel && cd gki_kernel
           repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4-lts
+          repo selfupdate # <-- ¡AQUÍ ESTÁ LA ACTUALIZACIÓN!
           repo sync -c --no-tags -j$(nproc --all)
       
       # Paso 3: Integrar KernelSU
@@ -43,7 +44,7 @@ jobs:
       
       # Paso 6: Subir el boot.img resultante como un "artefacto"
       - name: 6. Upload Artifact
-        uses: actions/upload-artifact@v4 # <-- ¡AQUÍ ESTÁ LA CORRECCIÓN!
+        uses: actions/upload-artifact@v4
         with:
           name: boot-image
           path: gki_kernel/out/android-5.4-lts/dist/boot.img
