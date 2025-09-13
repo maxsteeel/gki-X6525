@@ -1,21 +1,20 @@
 # Nombre del workflow
-name: Build GKI Kernel with KernelSU (v18 - Safe & Complete)
+name: Build GKI Kernel with KernelSU (v18 - The Final Patch)
 
 # Cómo se activa este workflow
 on:
   workflow_dispatch:
 
-jobs:
+jobs
   build:
     runs-on: ubuntu-22.04
     steps:
-      # Paso 1: Instalar dependencias
+      # Pasos 1, 2, 3 sin cambios
       - name: 1. Install Dependencies
         run: |
           sudo apt update
           sudo apt install -y git bc bison build-essential curl flex g++-multilib gcc-multilib gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev libelf-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
 
-      # Paso 2: Descargar y configurar una versión local de "repo"
       - name: 2. Setup Repo Tool
         run: |
           mkdir -p ~/bin
@@ -23,41 +22,43 @@ jobs:
           chmod a+x ~/bin/repo
           echo "$HOME/bin" >> $GITHUB_PATH
 
-      # Paso 3: Descargar el código fuente del Kernel
       - name: 3. Download Kernel Source
         run: |
           mkdir gki_kernel && cd gki_kernel
           repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4-lts --no-repo-verify
           repo sync -c --no-tags --no-clone-bundle -j$(nproc --all)
 
-      # Paso 4 (SEGURO): Integrar una VERSIÓN COMPATIBLE de KernelSU
+      # Paso 4: Integrar una versión compatible de KernelSU
       - name: 4. Integrate Compatible KernelSU (v0.9.5)
         run: |
           cd gki_kernel
-          # Clonamos el repositorio
           git clone https://github.com/tiann/KernelSU.git
-          # Nos movemos a la versión v0.9.5, que es compatible con el kernel 5.4
           cd KernelSU && git checkout v0.9.5 && cd ..
-          # Ejecutamos el script de instalación desde nuestra copia local
           bash KernelSU/kernel/setup.sh
 
-      # Paso 5 (COMPLETO): Crear el fragmento de configuración con TODAS las dependencias
-      - name: 5. Create KernelSU Config Fragment
+      # Paso 5 (NUEVO Y CRUCIAL): Parchear el código de KernelSU para evitar el conflicto
+      - name: 5. Patch KernelSU Source Code
         run: |
           cd gki_kernel
-          # Creamos nuestra "nota adhesiva" con la invitación VIP completa
+          # Renombramos todas las instancias de 'current_sid' a 'ksu_current_sid' en el archivo conflictivo
+          sed -i 's/current_sid/ksu_current_sid/g' KernelSU/kernel/selinux/selinux.c
+
+      # Paso 6: Crear el fragmento de configuración con TODAS las dependencias
+      - name: 6. Create KernelSU Config Fragment
+        run: |
+          cd gki_kernel
           echo "CONFIG_KERNEL_SU=y" > kernelsu.fragment
           echo "CONFIG_PROC_FS=y" >> kernelsu.fragment
 
-      # Paso 6: Compilar el Kernel (usando el método oficial del fragmento)
-      - name: 6. Build Kernel
+      # Paso 7: Compilar el Kernel
+      - name: 7. Build Kernel
         run: |
           cd gki_kernel
           while true; do echo "Compilación en progreso - $(date)"; sleep 300; done &
           GKI_DEFCONFIG_FRAGMENT=kernelsu.fragment BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
 
-      # Paso 7: Subir el artefacto
-      - name: 7. Upload Artifact
+      # Paso 8: Subir el artefacto
+      - name: 8. Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: boot-image
