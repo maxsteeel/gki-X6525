@@ -1,5 +1,5 @@
 # Nombre del workflow
-name: Build GKI Kernel with KernelSU 
+name: Build GKI Kernel with KernelSU
 
 # Cómo se activa este workflow
 on:
@@ -30,11 +30,17 @@ jobs:
           repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4-lts --no-repo-verify
           repo sync -c --no-tags --no-clone-bundle -j$(nproc --all)
 
-      # Paso 4: Integrar KernelSU
-      - name: 4. Integrate KernelSU
+      # Paso 4 (MODIFICADO): Integrar una versión compatible de KernelSU
+      - name: 4. Integrate Compatible KernelSU
         run: |
           cd gki_kernel
-          curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
+          # Clonamos el repositorio y nos movemos a una versión específica (tag v0.9.5)
+          git clone https://github.com/tiann/KernelSU.git
+          cd KernelSU
+          git checkout v0.9.5
+          cd ..
+          # Ahora ejecutamos el script de instalación desde nuestra copia local
+          bash KernelSU/kernel/setup.sh
 
       # Paso 5: Modificar el gen de KernelSU para que esté activado por defecto
       - name: 5. Force Enable KernelSU by Default
@@ -42,7 +48,7 @@ jobs:
           cd gki_kernel
           sed -i 's/default n/default y/' KernelSU/kernel/Kconfig
 
-      # Paso 6 (NUEVO): Crear archivo bootconfig vacío para evitar el error de empaquetado
+      # Paso 6: Crear archivo bootconfig vacío
       - name: 6. Create Empty Bootconfig
         run: |
           cd gki_kernel
