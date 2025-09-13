@@ -1,49 +1,56 @@
 # Nombre del workflow
-name: Build GKI Kernel with KernelSU
+name: Build GKI Kernel with KernelSU (v4)
 
 # Cómo se activa este workflow
 on:
-  workflow_dispatch: # Permite iniciarlo manualmente desde la pestaña "Actions"
+  workflow_dispatch:
 
-# Definimos los trabajos a realizar
 jobs:
   build:
-    runs-on: ubuntu-22.04 # Usaremos una máquina virtual con Ubuntu 22.04
+    runs-on: ubuntu-22.04
     steps:
-      # Paso 1: Instalar todas las dependencias necesarias
+      # Paso 1: Instalar dependencias
       - name: 1. Install Dependencies
         run: |
           sudo apt update
-          sudo apt install -y git bc bison build-essential curl flex g++-multilib gcc-multilib gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev libelf-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev repo
+          sudo apt install -y git bc bison build-essential curl flex g++-multilib gcc-multilib gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev libelf-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
 
-      # Paso 2: Descargar el código fuente del Kernel
-      - name: 2. Download Kernel Source
+      # Paso 2: Descargar y configurar una versión local de "repo"
+      - name: 2. Setup Repo Tool
+        run: |
+          mkdir -p ~/bin
+          curl -s https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
+          chmod a+x ~/bin/repo
+          echo "$HOME/bin" >> $GITHUB_PATH
+
+      # Paso 3: Descargar el código fuente del Kernel
+      - name: 3. Download Kernel Source
         run: |
           mkdir gki_kernel && cd gki_kernel
-          repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4-lts
-          repo selfupdate # <-- ¡AQUÍ ESTÁ LA ACTUALIZACIÓN!
-          repo sync -c --no-tags -j$(nproc --all)
-      
-      # Paso 3: Integrar KernelSU
-      - name: 3. Integrate KernelSU
+          repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4-lts --depth=1 --no-repo-verify
+          repo sync -c --no-tags --no-clone-bundle -j$(nproc --all)
+
+      # Paso 4: Integrar KernelSU
+      - name: 4. Integrate KernelSU
         run: |
           cd gki_kernel
           curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
 
-      # Paso 4: Crear el archivo de configuración para KernelSU
-      - name: 4. Configure KernelSU
+      # Paso 5: Configurar KernelSU
+      - name: 5. Configure KernelSU
         run: |
           cd gki_kernel
           scripts/config --file common/arch/arm64/configs/gki_defconfig -e KERNEL_SU
 
-      # Paso 5: Compilar el Kernel
-      - name: 5. Build Kernel
+      # Paso 6: Compilar el Kernel (con "guardián" de actividad)
+      - name: 6. Build Kernel
         run: |
           cd gki_kernel
+          while true; do echo "Compilación en progreso - $(date)"; sleep 300; done &
           BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
-      
-      # Paso 6: Subir el boot.img resultante como un "artefacto"
-      - name: 6. Upload Artifact
+
+      # Paso 7: Subir el artefacto
+      - name: 7. Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: boot-image
