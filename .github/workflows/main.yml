@@ -51,15 +51,22 @@ jobs:
           echo "CONFIG_KERNEL_SU=y" > kernelsu.fragment
           echo "CONFIG_PROC_FS=y" >> kernelsu.fragment
 
-      # Paso 6: Compilar el Kernel
-      - name: 6. Build Kernel
+      # Paso 6: Aplicar parche de compatibilidad para 'current_sid'
+      - name: 6. Patch KernelSU for 'current_sid' redefinition
+        run: |
+          cd gki_kernel/common
+          sed -i 's/static inline u32 current_sid(void)/static inline u32 ksu_current_sid(void)/g' drivers/kernelsu/selinux/selinux.c
+          sed -i 's/current_sid()/ksu_current_sid()/g' drivers/kernelsu/selinux/selinux.c
+        
+      # Paso 7: Compilar el Kernel
+      - name: 7. Build Kernel
         run: |
           cd gki_kernel
           while true; do echo "Build in progress - $(date)"; sleep 300; done &
           GKI_DEFCONFIG_FRAGMENT=kernelsu.fragment BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
 
-      # Paso 7: Subir el artefacto de compilación (boot.img)
-      - name: 7. Upload Artifact
+      # Paso 8: Subir el artefacto de compilación (boot.img)
+      - name: 8. Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: boot-image-gki-5.4.210_r00-kernelsu
