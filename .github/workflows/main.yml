@@ -1,0 +1,50 @@
+# Nombre del workflow
+name: Build GKI Kernel with KernelSU
+
+# Cómo se activa este workflow
+on:
+  workflow_dispatch: # Permite iniciarlo manualmente desde la pestaña "Actions"
+
+# Definimos los trabajos a realizar
+jobs:
+  build:
+    runs-on: ubuntu-22.04 # Usaremos una máquina virtual con Ubuntu 22.04
+    steps:
+      # Paso 1: Instalar todas las dependencias necesarias
+      - name: 1. Install Dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y git bc bison build-essential curl flex g++-multilib gcc-multilib gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev libelf-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev repo
+
+      # Paso 2: Descargar el código fuente del Kernel
+      - name: 2. Download Kernel Source
+        run: |
+          mkdir gki_kernel && cd gki_kernel
+          repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4-lts
+          repo sync -c --no-tags -j$(nproc --all)
+      
+      # Paso 3: Integrar KernelSU
+      - name: 3. Integrate KernelSU
+        run: |
+          cd gki_kernel
+          curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
+
+      # Paso 4: Crear el archivo de configuración para KernelSU
+      # No podemos usar el menú interactivo aquí, así que lo activamos con un script
+      - name: 4. Configure KernelSU
+        run: |
+          cd gki_kernel
+          scripts/config --file common/arch/arm64/configs/gki_defconfig -e KERNEL_SU
+
+      # Paso 5: Compilar el Kernel
+      - name: 5. Build Kernel
+        run: |
+          cd gki_kernel
+          BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
+      
+      # Paso 6: Subir el boot.img resultante como un "artefacto"
+      - name: 6. Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: boot-image
+          path: gki_kernel/out/android-5.4-lts/dist/boot.img
