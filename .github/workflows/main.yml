@@ -1,5 +1,5 @@
 # Nombre del workflow
-name: Build GKI Kernel with KernelSU (v23 - Final Fix)
+name: Build GKI Kernel with KernelSU (v24 - Combined Fix)
 
 # Cómo se activa este workflow
 on:
@@ -39,51 +39,20 @@ jobs:
           # Clonamos el código más reciente
           git clone https://github.com/tiann/KernelSU.git
           
-          # ¡Paso clave! Desactivamos la línea en setup.sh que descarga una versión antigua.
-          # Esto nos fuerza a usar el código de la rama 'main' que acabamos de clonar.
+          # PARCHE 1: Evita que el script descargue una versión antigua y nos fuerza a usar la rama 'main'.
+          # Esto soluciona los errores en 'sepolicy.c'.
           sed -i 's/git checkout $(git describe --tags --abbrev=0)/# &/' KernelSU/kernel/setup.sh
           
           # Ahora ejecutamos el script modificado
           bash KernelSU/kernel/setup.sh
 
-      # PASO 5 ELIMINADO: El parche para 'current_sid' ya no es necesario con el código más reciente.
-
-      # Paso 5: Crear el fragmento de configuración para KernelSU
-      - name: 5. Create KernelSU Config Fragment
-        run: |
-          cd gki_kernel
-          echo "CONFIG_KERNEL_SU=y" > kernelsu.fragment
-          echo "CONFIG_PROC_FS=y" >> kernelsu.fragment
-
-      # Paso 6: Compilar el Kernel
-      - name: 6. Build Kernel
-        run: |
-          cd gki_kernel
-          # El bucle while mantiene el job activo durante la compilación
-          while true; do echo "Build in progress - $(date)"; sleep 300; done &
-          GKI_DEFCONFIG_FRAGMENT=kernelsu.fragment BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
-
-      # Paso 7: Subir el artefacto de compilación (boot.img)
-      - name: 7. Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: boot-image-gki-5.4-kernelsu
-          path: gki_kernel/out/android12-5.4/dist/boot.img
-
-      - name: 4. Integrate Latest KernelSU
-        run: |
-          cd gki_kernel
-          git clone https://github.com/tiann/KernelSU.git
-          bash KernelSU/kernel/setup.sh
-
       # Paso 5: Aplicar parche para la redefinición de 'current_sid'
-      # La rama del kernel seleccionada ya define 'current_sid' en un header.
-      # Renombramos la función en el código de KernelSU para evitar el conflicto.
+      # PARCHE 2: Resuelve la redefinición de la función 'current_sid' en 'selinux.c'.
       - name: 5. Patch KernelSU for 'current_sid' redefinition
         run: |
           cd gki_kernel
-          sed -i 's/static inline u32 current_sid(void)/static inline u32 ksu_current_sid(void)/g' common/drivers/kernelsu/selinux/selinux.c
-          sed -i 's/current_sid()/ksu_current_sid()/g' common/drivers/kernelsu/selinux/selinux.c
+          sed -i 's/static inline u32 current_sid(void)/static inline u32 ksu_current_sid(void)/g' drivers/kernelsu/selinux/selinux.c
+          sed -i 's/current_sid()/ksu_current_sid()/g' drivers/kernelsu/selinux/selinux.c
 
       # Paso 6: Crear el fragmento de configuración para KernelSU
       - name: 6. Create KernelSU Config Fragment
@@ -105,34 +74,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: boot-image-gki-5.4-kernelsu
-          path: gki_kernel/out/android-5.4/dist/boot.img
-      - name: 4. Integrate Latest KernelSU
-        run: |
-          cd gki_kernel
-          git clone https://github.com/tiann/KernelSU.git
-          bash KernelSU/kernel/setup.sh
-
-      # PASO 5 ELIMINADO: El parche manual con 'sed' ya no es necesario.
-
-      # Paso 5: Crear el fragmento de configuración para KernelSU
-      - name: 5. Create KernelSU Config Fragment
-        run: |
-          cd gki_kernel
-          echo "CONFIG_KERNEL_SU=y" > kernelsu.fragment
-          echo "CONFIG_PROC_FS=y" >> kernelsu.fragment
-
-      # Paso 6: Compilar el Kernel
-      - name: 6. Build Kernel
-        run: |
-          cd gki_kernel
-          # El bucle while mantiene el job activo durante la compilación
-          while true; do echo "Build in progress - $(date)"; sleep 300; done &
-          GKI_DEFCONFIG_FRAGMENT=kernelsu.fragment BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
-
-      # Paso 7: Subir el artefacto de compilación (boot.img)
-      - name: 7. Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: boot-image-gki-5.4-kernelsu
-          path: gki_kernel/out/android-5.4/dist/boot.img
+          path: gki_kernel/out/android12-5.4/dist/boot.img
           
