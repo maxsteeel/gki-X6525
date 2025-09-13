@@ -21,24 +21,25 @@ jobs:
         run: |
           mkdir -p ~/bin && curl -s https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo && chmod a+x ~/bin/repo && echo "$HOME/bin" >> $GITHUB_PATH
 
-      # Paso 3: Descargar el código fuente del Kernel (con historial y bucle de actividad)
+      # Paso 3: Descargar el código fuente del Kernel
       - name: 3. Download Kernel Source (Full History)
         run: |
           mkdir gki_kernel && cd gki_kernel
-          # Bucle en segundo plano para mantener la consola activa durante la descarga
           while true; do echo "Repo sync in progress, please wait... $(date)"; sleep 300; done &
           repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4 --no-repo-verify
-          # Sincronización completa para asegurar que tengamos todas las etiquetas de versión
           repo sync --no-clone-bundle -j$(nproc --all)
       
-      # Paso 4: Fijar el Kernel a una versión estable conocida (5.4.210)
+      # Paso 4: Fijar el Kernel a una versión estable (5.4.210)
       - name: 4. Checkout Stable Kernel Version
         run: |
           cd gki_kernel/common
+          # CORRECCIÓN CLAVE: Forzamos la descarga de todas las etiquetas del repositorio remoto.
+          git fetch --tags
+          # Ahora el checkout de la etiqueta debería funcionar.
           git checkout android-5.4.210
           cd ../..
 
-      # Paso 5: Integrar KernelSU (versión estable por defecto, sin parches)
+      # Paso 5: Integrar KernelSU (versión estable por defecto)
       - name: 5. Integrate KernelSU
         run: |
           cd gki_kernel
