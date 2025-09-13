@@ -1,5 +1,5 @@
 # Nombre del workflow
-name: Build GKI Kernel with KernelSU (v21 - Corrected)
+name: Build GKI Kernel with KernelSU (v23 - Final Fix)
 
 # Cómo se activa este workflow
 on:
@@ -8,6 +8,7 @@ on:
 # Definimos los trabajos a realizar
 jobs:
   build:
+    name: Build Kernel
     runs-on: ubuntu-22.04
     steps:
       # Paso 1: Instalar dependencias del sistema
@@ -24,16 +25,51 @@ jobs:
           chmod a+x ~/bin/repo
           echo "$HOME/bin" >> $GITHUB_PATH
 
-      # Paso 3: Descargar el código fuente del Kernel GKI 5.4
+      # Paso 3: Descargar el código fuente del Kernel GKI 5.4 (rama non-lts)
       - name: 3. Download Kernel Source
         run: |
           mkdir gki_kernel && cd gki_kernel
           repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4 --no-repo-verify
           repo sync -c --no-tags --no-clone-bundle -j$(nproc --all)
+        
+      # Paso 4: Integrar la última versión de KernelSU (forzando el uso de la rama 'main')
+      - name: 4. Integrate Latest KernelSU
+        run: |
+          cd gki_kernel
+          # Clonamos el código más reciente
+          git clone https://github.com/tiann/KernelSU.git
+          
+          # ¡Paso clave! Desactivamos la línea en setup.sh que descarga una versión antigua.
+          # Esto nos fuerza a usar el código de la rama 'main' que acabamos de clonar.
+          sed -i 's/git checkout $(git describe --tags --abbrev=0)/# &/' KernelSU/kernel/setup.sh
+          
+          # Ahora ejecutamos el script modificado
+          bash KernelSU/kernel/setup.sh
 
-      # Paso 4: Integrar la última versión de KernelSU
-      # Se elimina el checkout a la v0.9.5 para usar la versión más reciente y compatible.
-      # El script setup.sh moderno se encarga de la compatibilidad.
+      # PASO 5 ELIMINADO: El parche para 'current_sid' ya no es necesario con el código más reciente.
+
+      # Paso 5: Crear el fragmento de configuración para KernelSU
+      - name: 5. Create KernelSU Config Fragment
+        run: |
+          cd gki_kernel
+          echo "CONFIG_KERNEL_SU=y" > kernelsu.fragment
+          echo "CONFIG_PROC_FS=y" >> kernelsu.fragment
+
+      # Paso 6: Compilar el Kernel
+      - name: 6. Build Kernel
+        run: |
+          cd gki_kernel
+          # El bucle while mantiene el job activo durante la compilación
+          while true; do echo "Build in progress - $(date)"; sleep 300; done &
+          GKI_DEFCONFIG_FRAGMENT=kernelsu.fragment BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
+
+      # Paso 7: Subir el artefacto de compilación (boot.img)
+      - name: 7. Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: boot-image-gki-5.4-kernelsu
+          path: gki_kernel/out/android12-5.4/dist/boot.img
+
       - name: 4. Integrate Latest KernelSU
         run: |
           cd gki_kernel
