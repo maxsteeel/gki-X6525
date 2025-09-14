@@ -38,13 +38,8 @@ jobs:
           # 1. Nos movemos a la versión deseada
           git checkout v0.6.1
           cd ..
-          
-          # 2. CORRECCIÓN CLAVE: Reemplazamos los comandos problemáticos por 'true' para no romper el script.
-          sed -i 's/git pull/true/g' KernelSU/kernel/setup.sh
-          sed -i 's/git checkout .*/true/g' KernelSU/kernel/setup.sh
-          
           # 3. Ejecutamos el script ahora parcheado de forma segura
-          bash KernelSU/kernel/setup.sh
+          bash KernelSU/kernel/setup.sh -s 0.6.1
           
        # Paso 5: Crear el fragmento de configuración
       - name: 5. Create KernelSU and LTO Config Fragment
