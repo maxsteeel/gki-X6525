@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     name: Build Kernel
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-22-04
     steps:
       # Paso 1: Instalar dependencias
       - name: 1. Install Dependencies
@@ -29,66 +29,137 @@ jobs:
           while true; do echo "Sync in progress... $(date)"; sleep 300; done &
           repo sync -c --no-clone-bundle -j$(nproc --all)
 
-      # Paso 4: Integrar la versión v0.5.2 de KernelSU
-      - name: 4. Integrate KernelSU v0.5.2
+      # Paso 4: Integrar la versión v0.9.5 de KernelSU
+      - name: 4. Integrate KernelSU v0.9.5
         run: |
           cd gki_kernel
           git clone https://github.com/tiann/KernelSU.git
           cd KernelSU
-          # CORRECCIÓN: Nos movemos a la etiqueta de la versión v0.5.2
           git checkout v0.9.5
           cd ..
-          
           bash KernelSU/kernel/setup.sh v0.9.5
 
-       # Paso 5: Crear el fragmento de configuración
-      - name: 5. Create KernelSU and LTO Config Fragment
+      # Paso 5: Crear el fragmento de configuración con TODAS las diferencias
+      - name: 5. Create Full Config Fragment from Stock Differences
         run: |
           cd gki_kernel
+          # --- Configuraciones base de KernelSU y LTO ---
           echo "CONFIG_KSU=y" > ksu.fragment
           echo "CONFIG_KERNEL_SU=y" >> ksu.fragment
           echo "CONFIG_PROC_FS=y" >> ksu.fragment
           echo "# CONFIG_LTO_CLANG_FULL is not set" >> ksu.fragment
           echo "CONFIG_LTO_CLANG_THIN=y" >> ksu.fragment
-          # --- INICIO DE LA LISTA COMPLETA DE CONFIGURACIONES DE UNISOC ---
-          echo "" >> ksu.fragment
-          echo "# --- Configuraciones de Arquitectura y Sistema Base de Unisoc ---" >> ksu.fragment
-          echo "CONFIG_ARCH_SPRD=y" >> ksu.fragment
+          
+          # --- INICIO: Aplicando diferencias de config_stock ---
+          echo "# --- Arch & General Setup ---" >> ksu.fragment
+          echo "CONFIG_TRAN_HIBER_SUPPORT=y" >> ksu.fragment
+          echo "CONFIG_LOG_BUF_SHIFT=20" >> ksu.fragment
           echo "CONFIG_SPRD_CORE_CTL=y" >> ksu.fragment
           echo "CONFIG_SPRD_CORE_ISOLATION=y" >> ksu.fragment
           echo "CONFIG_SPRD_ROTATION_TASK=y" >> ksu.fragment
-          echo "CONFIG_SPRD_SOCID=m" >> ksu.fragment
-          echo "CONFIG_SPRD_SYSTIMER=m" >> ksu.fragment
+          echo "# CONFIG_ARCH_SUNXI is not set" >> ksu.fragment
+          echo "# CONFIG_ARCH_HISI is not set" >> ksu.fragment
+          echo "# CONFIG_ARCH_QCOM is not set" >> ksu.fragment
+          echo "CONFIG_ARCH_SPRD=y" >> ksu.fragment
           echo "" >> ksu.fragment
-          echo "# --- Gestión de Energía (Deep Sleep) ---" >> ksu.fragment
+          echo "# --- Power Management & Sleep ---" >> ksu.fragment
+          echo "CONFIG_PM_WAKELOCKS=y" >> ksu.fragment
+          echo "# CONFIG_PM_WAKELOCKS_GC is not set" >> ksu.fragment
+          echo "# CONFIG_ARM_SPRD_CPUIDLE is not set" >> ksu.fragment
           echo "CONFIG_SPRD_DEEP_SLEEP=y" >> ksu.fragment
           echo "CONFIG_SPRD_PM_STAT=m" >> ksu.fragment
           echo "CONFIG_SPRD_POWER_STAT=m" >> ksu.fragment
           echo "CONFIG_SPRD_POWER_MANAGER=m" >> ksu.fragment
           echo "" >> ksu.fragment
-          echo "# --- Controladores de Frecuencia del CPU ---" >> ksu.fragment
+          echo "# --- CPU Frequency Scaling ---" >> ksu.fragment
+          echo "CONFIG_CPU_FREQ_DEFAULT_GOV_SCHEDUTIL=y" >> ksu.fragment
+          echo "CONFIG_CPU_FREQ_GOV_USERSPACE=m" >> ksu.fragment
           echo "CONFIG_ARM_SPRD_CPUFREQ_V2=m" >> ksu.fragment
           echo "CONFIG_ARM_SPRD_CPUFREQ_PUBLIC=m" >> ksu.fragment
           echo "" >> ksu.fragment
-          echo "# --- Controladores de Hardware Clave (Pines, Relojes, Comunicación) ---" >> ksu.fragment
-          echo "CONFIG_PINCTRL_SPRD=m" >> ksu.fragment
-          echo "CONFIG_PINCTRL_SPRD_QOGIRL6=m" >> ksu.fragment
+          echo "# --- Firmware & Drivers ---" >> ksu.fragment
+          echo "CONFIG_SPRD_SIP_FW=m" >> ksu.fragment
+          echo "CONFIG_SPRD_SIPC_SETH=m" >> ksu.fragment
+          echo "CONFIG_SCSI_UFS_SPRD_QOGIRL6=m" >> ksu.fragment
+          echo "CONFIG_SPRD_UID=m" >> ksu.fragment
+          echo "CONFIG_SPRD_SOCID=m" >> ksu.fragment
+          echo "" >> ksu.fragment
+          echo "# --- TRANSSION Specific Support ---" >> ksu.fragment
+          echo "CONFIG_TRANSSION_SUPPORT=y" >> ksu.fragment
+          echo "CONFIG_SWITCH=m" >> ksu.fragment
+          echo "CONFIG_TRANSSION_HWINFO=m" >> ksu.fragment
+          echo "CONFIG_TRANSSION_CARDTRAY=y" >> ksu.fragment
+          echo "CONFIG_TRANSSION_GESTURE=m" >> ksu.fragment
+          echo "CONFIG_TRAN_RM_SOLUTION=m" >> ksu.fragment
+          echo "CONFIG_TRAN_TRANLOG=m" >> ksu.fragment
+          echo "CONFIG_TRAN_TNEK_SUPPORT=m" >> ksu.fragment
+          echo "CONFIG_TRAN_FPSMGR_SUPPORT=y" >> ksu.fragment
+          echo "CONFIG_TRAN_DARWIN_SUPPORT=y" >> ksu.fragment
+          echo "CONFIG_TRAN_DARWIN_FRE_BOOST=y" >> ksu.fragment
+          echo "CONFIG_TRAN_HIGH_FPS_SUPPORT=y" >> ksu.fragment
+          echo "CONFIG_TRAN_PERFLOG=y" >> ksu.fragment
+          echo "CONFIG_CHARGER_AW32257=m" >> ksu.fragment
+          echo "CONFIG_FUEL_GAUGE_SC27XX=m" >> ksu.fragment
+          echo "CONFIG_TRAN_SUPPLY=m" >> ksu.fragment
+          echo "CONFIG_TRAN_CHARGER=m" >> ksu.fragment
+          echo "" >> ksu.fragment
+          echo "# --- I2C, SPI, PINCTRL & GPIO (SPRD) ---" >> ksu.fragment
+          echo "CONFIG_I2C_SPRD=m" >> ksu.fragment
+          echo "CONFIG_I2C_SPRD_HW_V2=m" >> ksu.fragment
+          echo "CONFIG_SPI_SPRD=m" >> ksu.fragment
+          echo "CONFIG_SPI_SPRD_ADI=m" >> ksu.fragment
           echo "CONFIG_SPRD_COMMON_CLK=m" >> ksu.fragment
           echo "CONFIG_SPRD_UMS9230_CLK=m" >> ksu.fragment
           echo "CONFIG_UNISOC_IOMMU=m" >> ksu.fragment
           echo "CONFIG_UNISOC_MAILBOX=m" >> ksu.fragment
           echo "CONFIG_HWSPINLOCK_SPRD=m" >> ksu.fragment
+          echo "CONFIG_PINCTRL_SPRD=m" >> ksu.fragment
+          echo "CONFIG_PINCTRL_SPRD_QOGIRL6=m" >> ksu.fragment
+          echo "CONFIG_GPIO_EIC_SPRD=m" >> ksu.fragment
+          echo "CONFIG_GPIO_PMIC_EIC_SPRD=m" >> ksu.fragment
+          echo "CONFIG_GPIO_SPRD=m" >> ksu.fragment
           echo "" >> ksu.fragment
-          echo "# --- Controladores del PMIC (Chip de Energía) ---" >> ksu.fragment
-          echo "CONFIG_MFD_SC27XX_PMIC=m" >> ksu.fragment
+          echo "# --- Power, Reset, Regulator & Watchdog (SPRD) ---" >> ksu.fragment
+          echo "CONFIG_POWER_RESET_SC27XX=m" >> ksu.fragment
+          echo "CONFIG_CHARGER_MANAGER=m" >> ksu.fragment
           echo "CONFIG_REGULATOR_SC2730=m" >> ksu.fragment
           echo "CONFIG_REGULATOR_UMP518=m" >> ksu.fragment
-          echo "CONFIG_POWER_RESET_SC27XX=m" >> ksu.fragment
-          echo "CONFIG_RTC_DRV_SC27XX=m" >> ksu.fragment
+          echo "CONFIG_MFD_SC27XX_PMIC=m" >> ksu.fragment
+          echo "CONFIG_SPRD_CPU_COOLING=m" >> ksu.fragment
+          echo "CONFIG_SPRD_GPU_COOLING_DEVICE=m" >> ksu.fragment
+          echo "CONFIG_SPRD_THERMAL=m" >> ksu.fragment
+          echo "CONFIG_SPRD_SOC_THERMAL=m" >> ksu.fragment
+          echo "CONFIG_SC27XX_TSENSOR_THERMAL=m" >> ksu.fragment
           echo "CONFIG_WATCHDOG_SPRD_FIQ=m" >> ksu.fragment
           echo "CONFIG_WATCHDOG_SPRD_PMIC=m" >> ksu.fragment
+          echo "CONFIG_SPRD_WATCHDOG_FIQ=m" >> ksu.fragment
+          echo "CONFIG_SPRD_WATCHDOG_PMIC=m" >> ksu.fragment
           echo "" >> ksu.fragment
-          echo "# --- Comunicación con el Módem (SIPC) ---" >> ksu.fragment
+          echo "# --- Misc Subsystems (SPRD) ---" >> ksu.fragment
+          echo "CONFIG_RTC_DRV_SC27XX=m" >> ksu.fragment
+          echo "CONFIG_SPRD_DMA=m" >> ksu.fragment
+          echo "CONFIG_COMMON_CLK_SPRD=m" >> ksu.fragment
+          echo "CONFIG_SPRD_UMS9230_CLK=m" >> ksu.fragment
+          echo "CONFIG_HWSPINLOCK_SPRD=m" >> ksu.fragment
+          echo "CONFIG_SPRD_7SRESET=m" >> ksu.fragment
+          echo "CONFIG_SPRD_PMIC_SMPL=m" >> ksu.fragment
+          echo "CONFIG_SPRD_PMIC_SYSCON=m" >> ksu.fragment
+          echo "CONFIG_SPRD_SYSDUMP=y" >> ksu.fragment
+          echo "CONFIG_SPRD_MINI_SYSDUMP=y" >> ksu.fragment
+          echo "CONFIG_SPRD_EMERGENCY_RESTART=y" >> ksu.fragment
+          echo "CONFIG_SPRD_NATIVE_HANG_MONITOR=y" >> ksu.fragment
+          echo "CONFIG_TRAN_DEVMSG_SUPPORT=y" >> ksu.fragment
+          echo "CONFIG_SPRD_HANG_DEBUG=y" >> ksu.fragment
+          echo "CONFIG_SPRD_HANG_WDF=m" >> ksu.fragment
+          echo "CONFIG_SPRD_HANG_WDH=y" >> ksu.fragment
+          echo "CONFIG_SPRD_HANG_DEBUG_UART=y" >> ksu.fragment
+          echo "CONFIG_SPRD_HANG_RESET=y" >> ksu.fragment
+          echo "CONFIG_SPRD_HANG_TRIGGER=y" >> ksu.fragment
+          echo "CONFIG_SPRD_POWER_DEBUG=m" >> ksu.fragment
+          echo "CONFIG_SPRD_POWER_STAT=m" >> ksu.fragment
+          echo "CONFIG_SPRD_AUTOTEST=m" >> ksu.fragment
+          echo "CONFIG_SPRD_AUTOTEST_GPIO=m" >> ksu.fragment
+          echo "CONFIG_SPRD_AUTOTEST_PINCTRL=m" >> ksu.fragment
           echo "CONFIG_SPRD_SIPC=m" >> ksu.fragment
           echo "CONFIG_SPRD_SIPC_SPIPE=m" >> ksu.fragment
           echo "CONFIG_SPRD_SIPC_SPOOL=m" >> ksu.fragment
@@ -96,40 +167,72 @@ jobs:
           echo "CONFIG_SPRD_SIPC_SBUF_BRIDGE=m" >> ksu.fragment
           echo "CONFIG_SPRD_SIPC_SBLOCK_BRIDGE=m" >> ksu.fragment
           echo "CONFIG_SPRD_SIPC_WCN=y" >> ksu.fragment
-      # --- FIN DE LA LISTA ---
-    
-      # PASO NUEVO Y CLAVE
-      # Paso 6: Preparar la configuración para los módulos de Unisoc
-      - name: 6. Prepare Build Config for Unisoc Modules
+          echo "CONFIG_SPRD_MODEM_POWER_MANAGER=m" >> ksu.fragment
+          echo "CONFIG_SPRD_USBPINMUX=m" >> ksu.fragment
+          echo "CONFIG_SPRD_USBPINMUX_QOGIRL6=m" >> ksu.fragment
+          echo "CONFIG_SPRD_FLUSH_DEV=y" >> ksu.fragment
+          echo "CONFIG_SPRD_SYSTIMER=m" >> ksu.fragment
+          echo "CONFIG_SPRD_TIME_SYNC=m" >> ksu.fragment
+          echo "CONFIG_SPRD_TIME_SYNC_CP=m" >> ksu.fragment
+          echo "CONFIG_UNISOC_IOMMU=m" >> ksu.fragment
+          echo "CONFIG_UNISOC_MODEM_LOADER=m" >> ksu.fragment
+          echo "CONFIG_UNISOC_SIPC_VIRT_BUS=m" >> ksu.fragment
+          echo "CONFIG_UNISOC_MAILBOX=m" >> ksu.fragment
+          echo "CONFIG_UNISOC_MAILBOX_R2=y" >> ksu.fragment
+          echo "CONFIG_PWM_SPRD=m" >> ksu.fragment
+          echo "CONFIG_UNISOC_WCN_BSP=m" >> ksu.fragment
+          echo "CONFIG_SPRD_IMS_BRIDGE=m" >> ksu.fragment
+          echo "CONFIG_SPRD_WLAN=m" >> ksu.fragment
+          echo "CONFIG_SPRD_CP_DUMP=y" >> ksu.fragment
+          echo "CONFIG_SPRD_MODEM_DEBUG=m" >> ksu.fragment
+          echo "CONFIG_SPRD_MIPI_LOG_R5P1=m" >> ksu.fragment
+          echo "CONFIG_SPRD_PROC_BOOTDEVICE=y" >> ksu.fragment
+          echo "CONFIG_SPRD_PROC_UFS=y" >> ksu.fragment
+          echo "CONFIG_SPRD_PROC_MMC=y" >> ksu.fragment
+          # --- FIN: Aplicando diferencias de config_stock ---
+          
+      
+      # --- PASO NUEVO ---
+      # Paso 6: Personalizar la Versión del Kernel y Limpiar el Suffix "-dirty"
+      - name: 6. Set Custom Kernel Version
+        run: |
+          # 1. Añadimos nuestra marca personal al final del nombre del kernel.
+          #    Esto sobreescribe cualquier LOCALVERSION por defecto que ponga el script de GKI.
+          echo 'CONFIG_LOCALVERSION="-android12-9-Max-X6525"' >> gki_kernel/ksu.fragment
+          
+          # 2. Creamos un archivo .scmversion vacío. Esto engaña al sistema de compilación
+          #    para que piense que el código fuente está "limpio" y no añada el sufijo "-dirty".
+          touch gki_kernel/common/.scmversion
+          echo "Kernel version string set to -android12-9-Max-X6525 and -dirty suffix removed."
+
+      # Paso 7: Preparar la configuración para los módulos de Unisoc
+      - name: 7. Prepare Build Config for Unisoc Modules
         run: |
           echo "KMI_SYMBOL_LIST_ADD_SYMBOLS_FROM_MODULES=$GITHUB_WORKSPACE/unisoc_modules" > gki_kernel/common/build.config.unisoc
           echo "TRIM_NONLISTED_KMI=0" >> gki_kernel/common/build.config.unisoc
-          # CORRECCIÓN CLAVE: Desactivamos el modo estricto para permitir nuestros módulos
           echo "KMI_SYMBOL_LIST_STRICT_MODE=0" >> gki_kernel/common/build.config.unisoc
           cat gki_kernel/common/build.config.gki.aarch64 >> gki_kernel/common/build.config.unisoc
           echo "Configuraciones unificadas en build.config.unisoc"
           
-      # Paso 7: Compilar el Kernel (se espera que falle al final, es normal)
-      - name: 7. Build Kernel
+      # Paso 8: Compilar el Kernel
+      - name: 8. Build Kernel
         run: |
           cd gki_kernel
           while true; do echo "Build in progress - $(date)"; sleep 300; done &
-          # Ejecutamos la compilación. El '|| true' asegura que el workflow continúe aunque este paso falle.
-          (GKI_DEFCONFIG_FRAGMENT=ksu.fragment LTO=thin BUILD_CONFIG=common/build.config.unisoc build/build.sh) || true
+          (GKI_DEFCONFIG_FRAGMENT=ksu.fragment BUILD_CONFIG=common/build.config.unisoc build/build.sh) || true
 
-      # Paso 8: Actualizar la lista de módulos y empaquetar
-      - name: 8. Update Module List and Package Artifacts
+      # Paso 9: Actualizar la lista de módulos y empaquetar
+      - name: 9. Update Module List and Package Artifacts
         run: |
           cd gki_kernel
-          # 1. Copiamos la nueva lista de módulos como indica el log
           cp out/android12-5.4/common/modules.order common/android/gki_aarch64_modules
           echo "Lista de módulos actualizada."
-          # 2. Volvemos a ejecutar el script, que ahora solo empaquetará los resultados
-          GKI_DEFCONFIG_FRAGMENT=ksu.fragment LTO=thin BUILD_CONFIG=common/build.config.unisoc build/build.sh
+          GKI_DEFCONFIG_FRAGMENT=ksu.fragment BUILD_CONFIG=common/build.config.unisoc build/build.sh
       
-      # Paso 9: Subir el artefacto de compilación
-      - name: 9. Upload Build Artifacts
+      # Paso 10: Subir el artefacto de compilación
+      - name: 10. Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: GKI-Build-Artifacts-5.4.210-Unisoc
           path: gki_kernel/out/android12-5.4/dist/
+          
