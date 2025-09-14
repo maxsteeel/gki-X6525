@@ -39,7 +39,7 @@ jobs:
           git checkout v0.6.1
           cd ..
           
-          bash KernelSU/kernel/setup.sh 0.6.1
+          bash KernelSU/kernel/setup.sh v0.6.1
 
        # Paso 5: Crear el fragmento de configuración
       - name: 5. Create KernelSU and LTO Config Fragment
