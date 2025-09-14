@@ -216,7 +216,7 @@ jobs:
         run: |
           cd gki_kernel
           while true; do echo "Build in progress - $(date)"; sleep 300; done &
-          (GKI_DEFCONFIG_FRAGMENT=ksu.fragment BUILD_CONFIG=common/build.config.unisoc build/build.sh) || true
+          (GKI_DEFCONFIG_FRAGMENT=ksu.fragment LTO=thin BUILD_CONFIG=common/build.config.unisoc build/build.sh) || true
 
       # Paso 9: Actualizar la lista de módulos y empaquetar
       - name: 9. Update Module List and Package Artifacts
@@ -224,7 +224,7 @@ jobs:
           cd gki_kernel
           cp out/android12-5.4/common/modules.order common/android/gki_aarch64_modules
           echo "Lista de módulos actualizada."
-          GKI_DEFCONFIG_FRAGMENT=ksu.fragment BUILD_CONFIG=common/build.config.unisoc build/build.sh
+          GKI_DEFCONFIG_FRAGMENT=ksu.fragment LTO=thin BUILD_CONFIG=common/build.config.unisoc build/build.sh
       
       # Paso 10: Subir el artefacto de compilación
       - name: 10. Upload Build Artifacts
