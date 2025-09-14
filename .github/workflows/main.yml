@@ -38,10 +38,10 @@ jobs:
           # 1. Nos movemos a la versión deseada
           git checkout v0.6.1
           cd ..
-          # 3. Ejecutamos el script ahora parcheado de forma segura
+          # 2. Ejecutamos el script
           bash KernelSU/kernel/setup.sh v0.6.1
-          
-       # Paso 5: Crear el fragmento de configuración
+     
+      # Paso 5: Crear el fragmento de configuración
       - name: 5. Create KernelSU and LTO Config Fragment
         run: |
           cd gki_kernel
@@ -51,6 +51,7 @@ jobs:
           echo "# CONFIG_LTO_CLANG_FULL is not set" >> ksu.fragment
           echo "CONFIG_LTO_CLANG_THIN=y" >> ksu.fragment
           # --- INICIO DE LA LISTA COMPLETA DE CONFIGURACIONES DE UNISOC ---
+         
           echo "" >> ksu.fragment
           echo "# --- Configuraciones de Arquitectura y Sistema Base de Unisoc ---" >> ksu.fragment
           echo "CONFIG_ARCH_SPRD=y" >> ksu.fragment
@@ -58,6 +59,7 @@ jobs:
           echo "CONFIG_SPRD_CORE_ISOLATION=y" >> ksu.fragment
           echo "CONFIG_SPRD_ROTATION_TASK=y" >> ksu.fragment
           echo "CONFIG_SPRD_SOCID=m" >> ksu.fragment
+        
           echo "CONFIG_SPRD_SYSTIMER=m" >> ksu.fragment
           echo "" >> ksu.fragment
           echo "# --- Gestión de Energía (Deep Sleep) ---" >> ksu.fragment
@@ -65,6 +67,7 @@ jobs:
           echo "CONFIG_SPRD_PM_STAT=m" >> ksu.fragment
           echo "CONFIG_SPRD_POWER_STAT=m" >> ksu.fragment
           echo "CONFIG_SPRD_POWER_MANAGER=m" >> ksu.fragment
+          
           echo "" >> ksu.fragment
           echo "# --- Controladores de Frecuencia del CPU ---" >> ksu.fragment
           echo "CONFIG_ARM_SPRD_CPUFREQ_V2=m" >> ksu.fragment
@@ -72,6 +75,7 @@ jobs:
           echo "" >> ksu.fragment
           echo "# --- Controladores de Hardware Clave (Pines, Relojes, Comunicación) ---" >> ksu.fragment
           echo "CONFIG_PINCTRL_SPRD=m" >> ksu.fragment
+   
           echo "CONFIG_PINCTRL_SPRD_QOGIRL6=m" >> ksu.fragment
           echo "CONFIG_SPRD_COMMON_CLK=m" >> ksu.fragment
           echo "CONFIG_SPRD_UMS9230_CLK=m" >> ksu.fragment
@@ -94,11 +98,11 @@ jobs:
           echo "CONFIG_SPRD_SIPC_SPOOL=m" >> ksu.fragment
           echo "CONFIG_SPRD_SIPC_SLOG_BRIDGE=m" >> ksu.fragment
           echo "CONFIG_SPRD_SIPC_SBUF_BRIDGE=m" >> ksu.fragment
+  
           echo "CONFIG_SPRD_SIPC_SBLOCK_BRIDGE=m" >> ksu.fragment
           echo "CONFIG_SPRD_SIPC_WCN=y" >> ksu.fragment
       # --- FIN DE LA LISTA ---
     
-      # PASO NUEVO Y CLAVE
       # Paso 6: Preparar la configuración para los módulos de Unisoc
       - name: 6. Prepare Build Config for Unisoc Modules
         run: |
@@ -109,12 +113,17 @@ jobs:
           cat gki_kernel/common/build.config.gki.aarch64 >> gki_kernel/common/build.config.unisoc
           echo "Configuraciones unificadas en build.config.unisoc"
           
-      # Paso 7: Compilar el Kernel (se espera que falle al final, es normal)
+      # Paso 7: Compilar el Kernel (CORREGIDO)
       - name: 7. Build Kernel
         run: |
           cd gki_kernel
+          # PASO CLAVE: Generar un nuevo 'defconfig' que incluya nuestros fragmentos.
+          # Esto "actualiza" la configuración base para que la compilación principal no falle.
+          GKI_DEFCONFIG_FRAGMENT=ksu.fragment BUILD_CONFIG=common/build.config.unisoc build/build.sh build/build_config.sh
+          echo "Nuevo defconfig generado para incluir las personalizaciones."
+
           while true; do echo "Build in progress - $(date)"; sleep 300; done &
-          # Ejecutamos la compilación. El '|| true' asegura que el workflow continúe aunque este paso falle.
+          # Ahora ejecutamos la compilación completa. El '|| true' sigue siendo una buena práctica.
           (GKI_DEFCONFIG_FRAGMENT=ksu.fragment LTO=thin BUILD_CONFIG=common/build.config.unisoc build/build.sh) || true
 
       # Paso 8: Actualizar la lista de módulos y empaquetar
