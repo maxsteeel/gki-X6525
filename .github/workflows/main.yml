@@ -39,11 +39,11 @@ jobs:
           git checkout v0.6.1
           cd ..
           
-          # 2. CORRECCIÓN CLAVE: Desactivamos todos los comandos 'git checkout' y 'git pull' en el script
-          sed -i 's/git checkout/# git checkout/' KernelSU/kernel/setup.sh
-          sed -i 's/git pull/# git pull/' KernelSU/kernel/setup.sh
+          # 2. CORRECCIÓN CLAVE: Reemplazamos los comandos problemáticos por 'true' para no romper el script.
+          sed -i 's/git pull/true/g' KernelSU/kernel/setup.sh
+          sed -i 's/git checkout .*/true/g' KernelSU/kernel/setup.sh
           
-          # 3. Ejecutamos el script ahora inofensivo
+          # 3. Ejecutamos el script ahora parcheado de forma segura
           bash KernelSU/kernel/setup.sh
           
        # Paso 5: Crear el fragmento de configuración
