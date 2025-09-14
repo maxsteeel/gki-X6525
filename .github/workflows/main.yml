@@ -43,16 +43,63 @@ jobs:
           
           bash KernelSU/kernel/setup.sh
 
-      # Paso 5: Crear el fragmento de configuración para KernelSU
-      - name: 5. Create KernelSU Config Fragment
+       # Paso 5: Crear el fragmento de configuración
+      - name: 5. Create KernelSU and LTO Config Fragment
         run: |
           cd gki_kernel
-          echo "CONFIG_KERNEL_SU=y" > kernelsu.fragment
-          echo "CONFIG_KSU=y" >> kernelsu.fragment
-          echo "CONFIG_PROC_FS=y" >> kernelsu.fragment
-          echo "CONFIG_LTO_CLANG_THIN=y" >> kernelsu.fragment
-          echo "# CONFIG_LTO_CLANG_FULL is not set" >> kernelsu.fragment
-          
+          echo "CONFIG_KSU=y" > ksu.fragment
+          echo "CONFIG_KERNEL_SU=y" >> ksu.fragment
+          echo "CONFIG_PROC_FS=y" >> ksu.fragment
+          echo "# CONFIG_LTO_CLANG_FULL is not set" >> ksu.fragment
+          echo "CONFIG_LTO_CLANG_THIN=y" >> ksu.fragment
+          # --- INICIO DE LA LISTA COMPLETA DE CONFIGURACIONES DE UNISOC ---
+          echo "" >> ksu.fragment
+          echo "# --- Configuraciones de Arquitectura y Sistema Base de Unisoc ---" >> ksu.fragment
+          echo "CONFIG_ARCH_SPRD=y" >> ksu.fragment
+          echo "CONFIG_SPRD_CORE_CTL=y" >> ksu.fragment
+          echo "CONFIG_SPRD_CORE_ISOLATION=y" >> ksu.fragment
+          echo "CONFIG_SPRD_ROTATION_TASK=y" >> ksu.fragment
+          echo "CONFIG_SPRD_SOCID=m" >> ksu.fragment
+          echo "CONFIG_SPRD_SYSTIMER=m" >> ksu.fragment
+          echo "" >> ksu.fragment
+          echo "# --- Gestión de Energía (Deep Sleep) ---" >> ksu.fragment
+          echo "CONFIG_SPRD_DEEP_SLEEP=y" >> ksu.fragment
+          echo "CONFIG_SPRD_PM_STAT=m" >> ksu.fragment
+          echo "CONFIG_SPRD_POWER_STAT=m" >> ksu.fragment
+          echo "CONFIG_SPRD_POWER_MANAGER=m" >> ksu.fragment
+          echo "" >> ksu.fragment
+          echo "# --- Controladores de Frecuencia del CPU ---" >> ksu.fragment
+          echo "CONFIG_ARM_SPRD_CPUFREQ_V2=m" >> ksu.fragment
+          echo "CONFIG_ARM_SPRD_CPUFREQ_PUBLIC=m" >> ksu.fragment
+          echo "" >> ksu.fragment
+          echo "# --- Controladores de Hardware Clave (Pines, Relojes, Comunicación) ---" >> ksu.fragment
+          echo "CONFIG_PINCTRL_SPRD=m" >> ksu.fragment
+          echo "CONFIG_PINCTRL_SPRD_QOGIRL6=m" >> ksu.fragment
+          echo "CONFIG_SPRD_COMMON_CLK=m" >> ksu.fragment
+          echo "CONFIG_SPRD_UMS9230_CLK=m" >> ksu.fragment
+          echo "CONFIG_UNISOC_IOMMU=m" >> ksu.fragment
+          echo "CONFIG_UNISOC_MAILBOX=m" >> ksu.fragment
+          echo "CONFIG_HWSPINLOCK_SPRD=m" >> ksu.fragment
+          echo "" >> ksu.fragment
+          echo "# --- Controladores del PMIC (Chip de Energía) ---" >> ksu.fragment
+          echo "CONFIG_MFD_SC27XX_PMIC=m" >> ksu.fragment
+          echo "CONFIG_REGULATOR_SC2730=m" >> ksu.fragment
+          echo "CONFIG_REGULATOR_UMP518=m" >> ksu.fragment
+          echo "CONFIG_POWER_RESET_SC27XX=m" >> ksu.fragment
+          echo "CONFIG_RTC_DRV_SC27XX=m" >> ksu.fragment
+          echo "CONFIG_WATCHDOG_SPRD_FIQ=m" >> ksu.fragment
+          echo "CONFIG_WATCHDOG_SPRD_PMIC=m" >> ksu.fragment
+          echo "" >> ksu.fragment
+          echo "# --- Comunicación con el Módem (SIPC) ---" >> ksu.fragment
+          echo "CONFIG_SPRD_SIPC=m" >> ksu.fragment
+          echo "CONFIG_SPRD_SIPC_SPIPE=m" >> ksu.fragment
+          echo "CONFIG_SPRD_SIPC_SPOOL=m" >> ksu.fragment
+          echo "CONFIG_SPRD_SIPC_SLOG_BRIDGE=m" >> ksu.fragment
+          echo "CONFIG_SPRD_SIPC_SBUF_BRIDGE=m" >> ksu.fragment
+          echo "CONFIG_SPRD_SIPC_SBLOCK_BRIDGE=m" >> ksu.fragment
+          echo "CONFIG_SPRD_SIPC_WCN=y" >> ksu.fragment
+      # --- FIN DE LA LISTA ---
+    
       # PASO NUEVO Y CLAVE
       # Paso 6: Preparar la configuración para los módulos de Unisoc
       - name: 6. Prepare Build Config for Unisoc Modules
@@ -66,7 +113,7 @@ jobs:
         run: |
           cd gki_kernel
           while true; do echo "Build in progress - $(date)"; sleep 300; done &
-          GKI_DEFCONFIG_FRAGMENT=kernelsu.fragment LTO=thin BUILD_CONFIG="common/build.config.gki.aarch64 -c common/build.config.unisoc" build/build.sh
+          GKI_DEFCONFIG_FRAGMENT=ksu.fragment LTO=thin BUILD_CONFIG="common/build.config.gki.aarch64 common/build.config.unisoc" build/build.sh
 
       # Paso 8: Subir el artefacto de compilación (boot.img)
       - name: 8. Upload Artifact
