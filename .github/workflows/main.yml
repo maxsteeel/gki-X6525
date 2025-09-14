@@ -34,6 +34,10 @@ jobs:
         run: |
           cd gki_kernel
           git clone https://github.com/tiann/KernelSU.git
+          cd KernelSU
+          # CORRECCIÓN: Nos movemos a la etiqueta de la versión v0.5.2
+          git checkout v0.6.1
+          cd ..
           bash KernelSU/kernel/setup.sh
 
        # Paso 5: Crear el fragmento de configuración
