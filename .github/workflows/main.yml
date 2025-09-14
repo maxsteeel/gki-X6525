@@ -34,13 +34,6 @@ jobs:
         run: |
           cd gki_kernel
           git clone https://github.com/tiann/KernelSU.git
-          cd KernelSU
-          # CORRECCIÓN: Nos movemos a la etiqueta de la versión v0.5.2
-          git checkout v0.5.2
-          cd ..
-          # CORRECCIÓN CLAVE: Desactivamos el 'git pull' problemático en el script antiguo.
-          sed -i 's/git pull/# git pull/' KernelSU/kernel/setup.sh
-          
           bash KernelSU/kernel/setup.sh
 
        # Paso 5: Crear el fragmento de configuración
