@@ -118,7 +118,7 @@ jobs:
           echo "" >> ksu.fragment
           echo "# --- Power, Reset, Regulator & Watchdog (SPRD) ---" >> ksu.fragment
           echo "CONFIG_POWER_RESET_SC27XX=m" >> ksu.fragment
-          # echo "CONFIG_CHARGER_MANAGER=m" >> ksu.fragment
+          echo "CONFIG_DMA_VIRTUAL_CHANNELS=m" >> ksu.fragment
           echo "CONFIG_REGULATOR_SC2730=m" >> ksu.fragment
           echo "CONFIG_REGULATOR_UMP518=m" >> ksu.fragment
           echo "CONFIG_MFD_SC27XX_PMIC=m" >> ksu.fragment
