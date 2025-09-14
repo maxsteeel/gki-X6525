@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     name: Build Kernel
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       # Paso 1: Instalar dependencias
       - name: 1. Install Dependencies
