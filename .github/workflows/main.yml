@@ -118,7 +118,7 @@ jobs:
           echo "" >> ksu.fragment
           echo "# --- Power, Reset, Regulator & Watchdog (SPRD) ---" >> ksu.fragment
           echo "CONFIG_POWER_RESET_SC27XX=m" >> ksu.fragment
-          echo "CONFIG_CHARGER_MANAGER=m" >> ksu.fragment
+          # echo "CONFIG_CHARGER_MANAGER=m" >> ksu.fragment
           echo "CONFIG_REGULATOR_SC2730=m" >> ksu.fragment
           echo "CONFIG_REGULATOR_UMP518=m" >> ksu.fragment
           echo "CONFIG_MFD_SC27XX_PMIC=m" >> ksu.fragment
@@ -204,9 +204,7 @@ jobs:
 
       # Paso 7: Preparar la configuración para los módulos de Unisoc
       - name: 7. Prepare Build Config for Unisoc Modules
-        run: |
-          sed -i 's/void cm_notify_event/void __cm_notify_event_disabled/' gki_kernel/common/drivers/power/supply/charger-manager.c
-          echo "Patched charger-manager.c to prevent redefinition error."
+        run: | 
           echo "KMI_SYMBOL_LIST_ADD_SYMBOLS_FROM_MODULES=$GITHUB_WORKSPACE/unisoc_modules" > gki_kernel/common/build.config.unisoc
           echo "TRIM_NONLISTED_KMI=0" >> gki_kernel/common/build.config.unisoc
           echo "KMI_SYMBOL_LIST_STRICT_MODE=0" >> gki_kernel/common/build.config.unisoc
