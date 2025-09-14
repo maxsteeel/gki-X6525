@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     name: Build Kernel
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-22-04
     steps:
       # Paso 1: Instalar dependencias
       - name: 1. Install Dependencies
@@ -46,9 +46,6 @@ jobs:
           # --- Configuraciones base de KernelSU y LTO ---
           echo "CONFIG_KSU=y" > ksu.fragment
           echo "CONFIG_KERNEL_SU=y" >> ksu.fragment
-          echo "CONFIG_PROC_FS=y" >> ksu.fragment
-          echo "# CONFIG_LTO_CLANG_FULL is not set" >> ksu.fragment
-          echo "CONFIG_LTO_CLANG_THIN=y" >> ksu.fragment
           
           # --- INICIO: Aplicando diferencias de config_stock ---
           echo "# --- Arch & General Setup ---" >> ksu.fragment
@@ -208,6 +205,8 @@ jobs:
       # Paso 7: Preparar la configuración para los módulos de Unisoc
       - name: 7. Prepare Build Config for Unisoc Modules
         run: |
+          sed -i 's/void cm_notify_event/void __cm_notify_event_disabled/' gki_kernel/common/drivers/power/supply/charger-manager.c
+          echo "Patched charger-manager.c to prevent redefinition error."
           echo "KMI_SYMBOL_LIST_ADD_SYMBOLS_FROM_MODULES=$GITHUB_WORKSPACE/unisoc_modules" > gki_kernel/common/build.config.unisoc
           echo "TRIM_NONLISTED_KMI=0" >> gki_kernel/common/build.config.unisoc
           echo "KMI_SYMBOL_LIST_STRICT_MODE=0" >> gki_kernel/common/build.config.unisoc
