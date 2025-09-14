@@ -111,18 +111,27 @@ jobs:
           cat gki_kernel/common/build.config.gki.aarch64 >> gki_kernel/common/build.config.unisoc
           echo "Configuraciones unificadas en build.config.unisoc"
           
-      # Paso 7: Compilar el Kernel
+      # Paso 7: Compilar el Kernel (se espera que falle al final, es normal)
       - name: 7. Build Kernel
         run: |
           cd gki_kernel
           while true; do echo "Build in progress - $(date)"; sleep 300; done &
-          GKI_DEFCONFIG_FRAGMENT=ksu.fragment LTO=thin BUILD_CONFIG="common/build.config.unisoc" build/build.sh
+          # Ejecutamos la compilación. El '|| true' asegura que el workflow continúe aunque este paso falle.
+          (GKI_DEFCONFIG_FRAGMENT=ksu.fragment LTO=thin BUILD_CONFIG=common/build.config.unisoc build/build.sh) || true
 
-      # Paso 8: Subir el artefacto de compilación (boot.img)
-      - name: 8. Upload Artifact
+      # Paso 8: Actualizar la lista de módulos y empaquetar
+      - name: 8. Update Module List and Package Artifacts
+        run: |
+          cd gki_kernel
+          # 1. Copiamos la nueva lista de módulos como indica el log
+          cp out/android12-5.4/common/modules.order common/android/gki_aarch64_modules
+          echo "Lista de módulos actualizada."
+          # 2. Volvemos a ejecutar el script, que ahora solo empaquetará los resultados
+          GKI_DEFCONFIG_FRAGMENT=ksu.fragment LTO=thin BUILD_CONFIG=common/build.config.unisoc build/build.sh
+      
+      # Paso 9: Subir el artefacto de compilación
+      - name: 9. Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          # Cambiamos el nombre para reflejar que son todos los artefactos
-          name: GKI-Build-Artifacts-5.4.210
-          # CORRECCIÓN CLAVE: Apuntamos a la carpeta completa en lugar de a un solo archivo
+          name: GKI-Build-Artifacts-5.4.210-Unisoc
           path: gki_kernel/out/android12-5.4/dist/
