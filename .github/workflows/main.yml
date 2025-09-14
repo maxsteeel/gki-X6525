@@ -29,18 +29,21 @@ jobs:
           while true; do echo "Sync in progress... $(date)"; sleep 300; done &
           repo sync -c --no-clone-bundle -j$(nproc --all)
 
-      # Paso 4: Integrar la versión v0.5.7 de KernelSU
-      - name: 4. Integrate KernelSU v0.5.7
+      # Paso 4: Integrar y FORZAR la versión v0.6.1 de KernelSU
+      - name: 4. Integrate and Force KernelSU v0.6.1
         run: |
           cd gki_kernel
           git clone https://github.com/tiann/KernelSU.git
           cd KernelSU
-          # CORRECCIÓN: Nos movemos a la etiqueta de la versión v0.5.7
-          git checkout v0.5.7
+          # 1. Nos movemos a la versión deseada
+          git checkout v0.6.1
           cd ..
-          # CORRECCIÓN CLAVE: Desactivamos el 'git pull' problemático en el script antiguo.
+          
+          # 2. CORRECCIÓN CLAVE: Desactivamos todos los comandos 'git checkout' y 'git pull' en el script
+          sed -i 's/git checkout/# git checkout/' KernelSU/kernel/setup.sh
           sed -i 's/git pull/# git pull/' KernelSU/kernel/setup.sh
           
+          # 3. Ejecutamos el script ahora inofensivo
           bash KernelSU/kernel/setup.sh
           
        # Paso 5: Crear el fragmento de configuración
