@@ -36,10 +36,10 @@ jobs:
           git clone https://github.com/tiann/KernelSU.git
           cd KernelSU
           # CORRECCIÓN: Nos movemos a la etiqueta de la versión v0.5.2
-          git checkout v0.6.1
+          git checkout v0.9.5
           cd ..
           
-          bash KernelSU/kernel/setup.sh v0.6.1
+          bash KernelSU/kernel/setup.sh v0.9.5
 
        # Paso 5: Crear el fragmento de configuración
       - name: 5. Create KernelSU and LTO Config Fragment
