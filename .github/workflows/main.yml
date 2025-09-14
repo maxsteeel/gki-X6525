@@ -102,11 +102,13 @@ jobs:
     
       # PASO NUEVO Y CLAVE
       # Paso 6: Crear y unificar el archivo de configuración de compilación
-      - name: 6. Create and Merge Build Config
+      - name: 6. Prepare Build Config for Unisoc Modules
         run: |
-          # 1. Creamos nuestro archivo base para Unisoc
+          # 1. Creamos nuestro archivo de configuración para Unisoc
           echo "KMI_SYMBOL_LIST_ADD_SYMBOLS_FROM_MODULES=$GITHUB_WORKSPACE/unisoc_modules" > gki_kernel/common/build.config.unisoc
-          # 2. Añadimos el contenido del config de GKI al final del nuestro
+          # 2. CORRECCIÓN CLAVE: Desactivamos la comprobación de la lista de módulos
+          echo "TRIM_NONLISTED_KMI=0" >> gki_kernel/common/build.config.unisoc
+          # 3. Añadimos el contenido del config de GKI al final del nuestro
           cat gki_kernel/common/build.config.gki.aarch64 >> gki_kernel/common/build.config.unisoc
           echo "Configuraciones unificadas en build.config.unisoc"
           
