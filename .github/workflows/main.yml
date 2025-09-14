@@ -1,5 +1,5 @@
 # Nombre del workflow
-name: Build GKI Kernel with KernelSU (Stable Combo)
+name: Build GKI Kernel with KernelSU
 
 # Cómo se activa este workflow
 on:
@@ -101,19 +101,21 @@ jobs:
       # --- FIN DE LA LISTA ---
     
       # PASO NUEVO Y CLAVE
-      # Paso 6: Preparar la configuración para los módulos de Unisoc
-      - name: 6. Prepare Build Config for Unisoc Modules
+      # Paso 6: Crear y unificar el archivo de configuración de compilación
+      - name: 6. Create and Merge Build Config
         run: |
-          # Creamos un archivo de configuración de compilación personalizado
+          # 1. Creamos nuestro archivo base para Unisoc
           echo "KMI_SYMBOL_LIST_ADD_SYMBOLS_FROM_MODULES=$GITHUB_WORKSPACE/unisoc_modules" > gki_kernel/common/build.config.unisoc
-          echo "Se ha creado el archivo build.config.unisoc apuntando a los módulos."
+          # 2. Añadimos el contenido del config de GKI al final del nuestro
+          cat gki_kernel/common/build.config.gki.aarch64 >> gki_kernel/common/build.config.unisoc
+          echo "Configuraciones unificadas en build.config.unisoc"
           
       # Paso 7: Compilar el Kernel
       - name: 7. Build Kernel
         run: |
           cd gki_kernel
           while true; do echo "Build in progress - $(date)"; sleep 300; done &
-          GKI_DEFCONFIG_FRAGMENT=ksu.fragment LTO=thin BUILD_CONFIG="common/build.config.gki.aarch64 common/build.config.unisoc" build/build.sh
+          GKI_DEFCONFIG_FRAGMENT=ksu.fragment LTO=thin BUILD_CONFIG="common/build.config.unisoc" build/build.sh
 
       # Paso 8: Subir el artefacto de compilación (boot.img)
       - name: 8. Upload Artifact
