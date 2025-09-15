@@ -215,16 +215,15 @@ jobs:
       - name: 8. Force Config and Build Kernel
         run: |
           cd gki_kernel
-          # 0. El script 'build_config.sh' es el encargado oficial de manejar las configuraciones.
-          GKI_DEFCONFIG_FRAGMENT=ksu.fragment BUILD_CONFIG=common/build.config.unisoc build/build.sh build/build_config.sh
+          touch out/android12-5.4/common/.config
           echo "Custom .config generated successfully."
           # 1. Genera un .config completo fusionando la base de GKI y nuestro fragmento.
-          # GKI_DEFCONFIG_FRAGMENT=ksu.fragment BUILD_CONFIG=common/build.config.unisoc build/build.sh make gki_defconfig
+          GKI_DEFCONFIG_FRAGMENT=ksu.fragment BUILD_CONFIG=common/build.config.unisoc build/build.sh make gki_defconfig
           # 2. Guarda ese .config como un nuevo 'defconfig' mínimo.
-          # GKI_DEFCONFIG_FRAGMENT=ksu.fragment BUILD_CONFIG=common/build.config.unisoc build/build.sh make savedefconfig
+          GKI_DEFCONFIG_FRAGMENT=ksu.fragment BUILD_CONFIG=common/build.config.unisoc build/build.sh make savedefconfig
           # 3. Sobrescribe el gki_defconfig original con nuestra versión. AHORA NUESTRA CONFIG ES LA LEY.
-          # cp out/android12-5.4/common/defconfig common/arch/arm64/configs/gki_defconfig
-          # echo "gki_defconfig was forcefully updated with custom configurations."
+          cp out/android12-5.4/common/defconfig common/arch/arm64/configs/gki_defconfig
+          echo "gki_defconfig was forcefully updated with custom configurations."
           # 4. Ejecuta la compilación principal. Ahora el script usará nuestra config como base.
           while true; do echo "Build in progress - $(date)"; sleep 300; done &
           (GKI_DEFCONFIG_FRAGMENT=ksu.fragment BUILD_CONFIG=common/build.config.unisoc build/build.sh) || true
