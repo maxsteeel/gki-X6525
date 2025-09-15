@@ -27,7 +27,7 @@ jobs:
           repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4 --no-repo-verify
           sed -i 's|path="common" name="kernel/common" revision="android12-5.4"|path="common" name="kernel/common" revision="android12-5.4.210_r00"|' .repo/manifest.xml
           while true; do echo "Sync in progress... $(date)"; sleep 300; done &
-          repo sync -c --no-clone-bundle -j$(nproc --all)
+          repo sync -c --no-tags --no-clone-bundle -j$(nproc --all)
 
       # Paso 4: Integrar la versión v0.9.5 de KernelSU
       - name: 4. Integrate KernelSU v0.9.5
@@ -211,12 +211,20 @@ jobs:
           cat gki_kernel/common/build.config.gki.aarch64 >> gki_kernel/common/build.config.unisoc
           echo "Configuraciones unificadas en build.config.unisoc"
           
-      # Paso 8: Compilar el Kernel
-      - name: 8. Build Kernel
+      # Paso 8: Forzar Configuración y Compilar el Kernel
+      - name: 8. Force Config and Build Kernel
         run: |
           cd gki_kernel
+          # 1. Genera un .config completo fusionando la base de GKI y nuestro fragmento.
+          GKI_DEFCONFIG_FRAGMENT=ksu.fragment BUILD_CONFIG=common/build.config.unisoc build/build.sh make gki_defconfig
+          # 2. Guarda ese .config como un nuevo 'defconfig' mínimo.
+          GKI_DEFCONFIG_FRAGMENT=ksu.fragment BUILD_CONFIG=common/build.config.unisoc build/build.sh make savedefconfig
+          # 3. Sobrescribe el gki_defconfig original con nuestra versión. AHORA NUESTRA CONFIG ES LA LEY.
+          cp out/android12-5.4/common/defconfig common/arch/arm64/configs/gki_defconfig
+          echo "gki_defconfig was forcefully updated with custom configurations."
+          # 4. Ejecuta la compilación principal. Ahora el script usará nuestra config como base.
           while true; do echo "Build in progress - $(date)"; sleep 300; done &
-          (GKI_DEFCONFIG_FRAGMENT=ksu.fragment LTO=thin BUILD_CONFIG=common/build.config.unisoc build/build.sh) || true
+          (GKI_DEFCONFIG_FRAGMENT=ksu.fragment BUILD_CONFIG=common/build.config.unisoc build/build.sh) || true
 
       # Paso 9: Actualizar la lista de módulos y empaquetar
       - name: 9. Update Module List and Package Artifacts
@@ -224,7 +232,7 @@ jobs:
           cd gki_kernel
           cp out/android12-5.4/common/modules.order common/android/gki_aarch64_modules
           echo "Lista de módulos actualizada."
-          GKI_DEFCONFIG_FRAGMENT=ksu.fragment LTO=thin BUILD_CONFIG=common/build.config.unisoc build/build.sh
+          GKI_DEFCONFIG_FRAGMENT=ksu.fragment BUILD_CONFIG=common/build.config.unisoc build/build.sh
       
       # Paso 10: Subir el artefacto de compilación
       - name: 10. Upload Build Artifacts
