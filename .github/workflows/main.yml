@@ -214,9 +214,10 @@ jobs:
       # Paso 8: Forzar Configuración y Compilar el Kernel
       - name: 8. Force Config and Build Kernel
         run: |
-          cd gki_kernel
-          touch out/android12-5.4/common/.config
+          
+          touch /home/runner/work/gki-X6525/gki-X6525/gki_kernel/out/android12-5.4/common/.config
           echo "Custom .config generated successfully."
+          cd gki_kernel
           # 1. Genera un .config completo fusionando la base de GKI y nuestro fragmento.
           GKI_DEFCONFIG_FRAGMENT=ksu.fragment BUILD_CONFIG=common/build.config.unisoc build/build.sh make gki_defconfig
           # 2. Guarda ese .config como un nuevo 'defconfig' mínimo.
