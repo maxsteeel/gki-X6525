@@ -51,6 +51,7 @@ jobs:
           echo "CONFIG_DRM_BRIDGE=y" >> gki.fragment
           echo "CONFIG_DRM_PANEL_BRIDGE=y" >> gki.fragment
           echo "CONFIG_DRM_PANEL_SIMPLE=y" >> gki.fragment
+          echo 'CONFIG_CMDLINE="processor.max_cstate=1"' >> gki_debug.fragment
 
           cp common/android/abi_gki_aarch64_unisoc common/android/abi_gki_aarch64
           cat common/android/abi_gki_aarch64_transsion >> common/android/abi_gki_aarch64
