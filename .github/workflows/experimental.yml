@@ -1,0 +1,99 @@
+# Nombre del workflow
+name: Experimental Stock Kernel Build
+
+# Cómo se activa este workflow
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Experimental Kernel
+    runs-on: ubuntu-22.04
+    steps:
+      # Paso 1: Instalar dependencias
+      - name: 1. Install Dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends git bc bison build-essential curl flex g++-multilib gcc-multilib gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev libelf-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
+
+      # Paso 2: Descargar el código fuente de GKI
+      - name: 2. Download GKI Source
+        run: |
+          mkdir -p ~/bin && curl -s https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo && chmod a+x ~/bin/repo && export PATH=~/bin:$PATH
+          mkdir gki_kernel && cd gki_kernel
+          repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4 --no-repo-verify
+          # Forzamos la revisión exacta 5.4.210 para máxima compatibilidad
+          sed -i 's|path="common" name="kernel/common" revision="android12-5.4"|path="common" name="kernel/common" revision="android12-5.4.210_r00"|' .repo/manifest.xml
+          repo sync --no-clone-bundle -j$(nproc --all)
+
+      # Paso 3: Descargar tus archivos de stock (config y módulos)
+      - name: 3. Checkout Stock Files from Repo
+        uses: actions/checkout@v4
+        with:
+          # Esta acción descarga el contenido de tu repositorio a la carpeta 'stock_files'
+          path: stock_files
+
+      # Paso 4: Integrar KernelSU
+      - name: 4. Integrate KernelSU
+        run: |
+          cd gki_kernel
+          git clone https://github.com/tiann/KernelSU.git
+          cd KernelSU
+          git checkout v0.9.5
+          cd ..
+          bash KernelSU/kernel/setup.sh v0.9.5
+
+      # --- INICIO DE LOS PASOS EXPERIMENTALES ---
+
+      # Paso 5: Preparar el entorno para la compilación Stock
+      - name: 5. Prepare Environment for Stock Build
+        run: |
+          # 1. Copiamos tu config_stock.txt y la nombramos 'stock_defconfig'
+          cp stock_files/config_stock.txt gki_kernel/common/arch/arm64/configs/stock_defconfig
+          echo "stock_defconfig placed in the kernel tree."
+
+          # 2. Aplicamos el parche al Makefile para falsear /proc/config.gz
+          # Usamos una expresión regular más segura para evitar reemplazar la línea equivocada
+          sed -i 's|^\s*\($(obj)/config_data: \)$(KCONFIG_CONFIG)\( FORCE\).*|\1arch/arm64/configs/stock_defconfig\2|' gki_kernel/common/kernel/Makefile
+          echo "kernel/Makefile patched to spoof /proc/config.gz."
+
+      # Paso 6: Preparar la configuración para los módulos de Unisoc
+      - name: 6. Prepare Build Config for Unisoc Modules
+        run: |
+          # Creamos el build.config para que el sistema sea permisivo y encuentre los símbolos
+          echo "KMI_SYMBOL_LIST_ADD_SYMBOLS_FROM_MODULES=$GITHUB_WORKSPACE/stock_files/unisoc_modules" > gki_kernel/common/build.config.unisoc
+          echo "TRIM_NONLISTED_KMI=0" >> gki_kernel/common/build.config.unisoc
+          echo "KMI_SYMBOL_LIST_STRICT_MODE=0" >> gki_kernel/common/build.config.unisoc
+          cat gki_kernel/common/build.config.gki.aarch64 >> gki_kernel/common/build.config.unisoc
+          echo "build.config.unisoc created."
+
+      # Paso 7: Compilar el Kernel usando la configuración de Stock
+      - name: 7. Build Kernel using Stock Config
+        run: |
+          cd gki_kernel
+          # Usamos DEFCONFIG para decirle al script que use nuestra config de stock como base
+          # Se espera que este paso falle, pero lo dejamos continuar con '|| true'
+          (DEFCONFIG=stock_defconfig LTO=thin BUILD_CONFIG=common/build.config.unisoc build/build.sh) || true
+
+      # Paso 8: Actualizar Lista de Módulos y Compilación Final
+      - name: 8. Update Module List & Final Build
+        run: |
+          cd gki_kernel
+          # Este paso probablemente falle si la primera compilación no generó 'modules.order',
+          # pero es parte del proceso estándar de GKI.
+          if [ -f out/android12-5.4/common/modules.order ]; then
+            cp out/android12-5.4/common/modules.order common/android/gki_aarch64_modules
+            echo "Lista de módulos actualizada."
+            DEFCONFIG=stock_defconfig LTO=thin BUILD_CONFIG=common/build.config.unisoc build/build.sh
+          else
+            echo "modules.order no fue generado. La primera compilación falló como se esperaba."
+            # Volvemos a ejecutar la compilación para obtener un log de error más claro si es necesario.
+            DEFCONFIG=stock_defconfig LTO=thin BUILD_CONFIG=common/build.config.unisoc build/build.sh || echo "La compilación falló, revisa los logs."
+          fi
+      
+      # Paso 9: Subir el artefacto de compilación
+      - name: 9. Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: GKI-Build-Experimental-Stock
+          path: gki_kernel/out/android12-5.4/dist/
+          
