@@ -59,6 +59,7 @@ jobs:
           echo "CONFIG_DEBUG_INFO=y" >> gki.fragment
           echo "CONFIG_PANIC_ON_OOPS=y" >> gki.fragment
           echo "CONFIG_PANIC_TIMEOUT=5" >> gki.fragment
+          echo 'CONFIG_CMDLINE="cgroup_disable=pressure video=DSI-1:720x1612@90 ramoops.mem_address=0x9ff00000 ramoops.mem_size=0x100000 ramoops.console_size=0x40000 ramoops.ftrace_size=0x40000 ramoops.pmsg_size=0x20000 androidboot.hardware=X6525 androidboot.ddrsize=3072M printk.devkmsg=on"' >> gki_debug.fragment
 
       # --- PASO MODIFICADO ---
       # Paso 6: Personalizar Versión del Kernel
