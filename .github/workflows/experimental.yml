@@ -48,7 +48,7 @@ jobs:
       - name: 5. Prepare Environment for Stock Build
         run: |
           # 1. Copiamos tu config_stock.txt y la nombramos 'stock_defconfig'
-          cp $GITHUB_WORKSPACE/stock_files/config_stock.txt gki_kernel/common/arch/arm64/configs/stock_defconfig
+          cp $GITHUB_WORKSPACE/config_stock.txt gki_kernel/common/arch/arm64/configs/stock_defconfig
           echo "stock_defconfig placed in the kernel tree."
 
           # 2. Aplicamos el parche al Makefile para falsear /proc/config.gz
@@ -60,7 +60,7 @@ jobs:
       - name: 6. Prepare Build Config for Unisoc Modules
         run: |
           # Creamos el build.config para que el sistema sea permisivo y encuentre los símbolos
-          echo "KMI_SYMBOL_LIST_ADD_SYMBOLS_FROM_MODULES=$GITHUB_WORKSPACE/stock_files/unisoc_modules" > gki_kernel/common/build.config.unisoc
+          echo "KMI_SYMBOL_LIST_ADD_SYMBOLS_FROM_MODULES=$GITHUB_WORKSPACE/unisoc_modules" > gki_kernel/common/build.config.unisoc
           echo "TRIM_NONLISTED_KMI=0" >> gki_kernel/common/build.config.unisoc
           echo "KMI_SYMBOL_LIST_STRICT_MODE=0" >> gki_kernel/common/build.config.unisoc
           cat gki_kernel/common/build.config.gki.aarch64 >> gki_kernel/common/build.config.unisoc
