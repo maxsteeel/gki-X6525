@@ -46,7 +46,7 @@ jobs:
           # --- Configuraciones base de KernelSU y LTO ---
           echo "CONFIG_KSU=y" > ksu.fragment
           echo "CONFIG_KERNEL_SU=y" >> ksu.fragment
-          
+          echo "CONFIG_KSU_SUSFS=y" >> ksu.fragment
           # --- INICIO: Aplicando diferencias de config_stock ---
           echo "# --- Arch & General Setup ---" >> ksu.fragment
           echo "CONFIG_TRAN_HIBER_SUPPORT=y" >> ksu.fragment
@@ -196,7 +196,7 @@ jobs:
           # 1. Añadimos nuestra marca personal al final del nombre del kernel.
           #    Esto sobreescribe cualquier LOCALVERSION por defecto que ponga el script de GKI.
           echo 'CONFIG_LOCALVERSION="-android12-9-Max-X6525"' >> gki_kernel/ksu.fragment
-          
+          echo "# CONFIG_LOCALVERSION_AUTO is not set"
           # 2. Creamos un archivo .scmversion vacío. Esto engaña al sistema de compilación
           #    para que piense que el código fuente está "limpio" y no añada el sufijo "-dirty".
           touch gki_kernel/common/.scmversion
