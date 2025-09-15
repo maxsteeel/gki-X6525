@@ -58,6 +58,27 @@ jobs:
           patch -p1 < 50_add_susfs_in_kernel-5.4.patch
           cd ../..
           echo "SUSFS patches applied successfully with manual fix."
+          
+          echo "Applying SUSFS stubs to fix linker errors..."
+          # Creamos un nuevo archivo C con las funciones de relleno (stubs).
+          cat <<EOF > gki_kernel/common/fs/susfs_stubs.c
+          #include <linux/types.h>
+
+          /*
+           * STUBS PARA SATISFACER AL ENLAZADOR.
+           * ESTA FUNCIONALIDAD NO HARÁ NADA.
+           */
+          bool susfs_is_current_ksu_domain(void) { return false; }
+          bool susfs_is_current_zygote_domain(void) { return false; }
+          bool susfs_is_sid_equal(int a, int b) { return a == b; }
+          void susfs_set_init_sid(int sid) { /* STUB */ }
+          void susfs_set_ksu_sid(int sid) { /* STUB */ }
+          void susfs_set_zygote_sid(int sid) { /* STUB */ }
+          EOF
+
+          # Modificamos el Makefile de /fs para que compile nuestro nuevo archivo de stubs.
+          echo 'obj-y += susfs_stubs.o' >> gki_kernel/common/fs/Makefile
+          echo "SUSFS stubs created and added to build."
 
   
       # --- PASO MODIFICADO ---
