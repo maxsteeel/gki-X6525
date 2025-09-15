@@ -42,18 +42,18 @@ jobs:
           git clone --depth=1 --branch kernel-5.4 https://gitlab.com/simonpunk/susfs4ksu.git
           
           # 2. Copiamos los parches y archivos a sus ubicaciones
-          cp susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch gki_kernel/KernelSU/
+          cp susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch gki_kernel/KernelSU-Next/
           cp susfs4ksu/kernel_patches/50_add_susfs_in_kernel-5.4.patch gki_kernel/common/
           cp -r susfs4ksu/kernel_patches/fs/* gki_kernel/common/fs/
           cp -r susfs4ksu/kernel_patches/include/linux/* gki_kernel/common/include/linux/
           
           # 3. Aplicamos el parche a KernelSU, permitiendo el fallo conocido
-          cd gki_kernel/KernelSU
+          cd gki_kernel/KernelSU-Next
           patch -p1 < 10_enable_susfs_for_ksu.patch
           cd ../..
 
           # 4. CORRECCIÓN MANUAL: Aplicamos el cambio del Hunk que falla con 'sed'
-          # sed -i '/if (!is_ksud_present())/a \ \ \ \ ksu_load_allow_rules(cred);' gki_kernel/KernelSU/kernel/selinux/selinux.c
+          # sed -i '/if (!is_ksud_present())/a \ \ \ \ ksu_load_allow_rules(cred);' gki_kernel/KernelSU-Next/kernel/selinux/selinux.c
           
           # 5. Aplicamos el parche principal al kernel
           # cd gki_kernel/common
@@ -80,6 +80,9 @@ jobs:
           echo "CONFIG_DRM_BRIDGE=y" >> gki.fragment
           echo "CONFIG_DRM_PANEL_BRIDGE=y" >> gki.fragment
           echo "CONFIG_DRM_PANEL_SIMPLE=y" >> gki.fragment
+
+          cp common/android/abi_gki_aarch64_unisoc common/android/abi_gki_aarch64
+          cat common/android/abi_gki_aarch64_transsion >> common/android/abi_gki_aarch64
           
       # Paso 7: Personalizar Versión del Kernel
       - name: 7. Set Custom Kernel Version
