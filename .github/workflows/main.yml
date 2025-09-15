@@ -51,14 +51,13 @@ jobs:
           echo "CONFIG_DRM_BRIDGE=y" >> gki.fragment
           echo "CONFIG_DRM_PANEL_BRIDGE=y" >> gki.fragment
           echo "CONFIG_DRM_PANEL_SIMPLE=y" >> gki.fragment
-                    
-
+          
       # --- PASO MODIFICADO ---
       # Paso 6: Personalizar Versión del Kernel
       - name: 6. Set Custom Kernel Version
         run: |
-          touch gki_kernel/common/.scmversion
-          echo "-Max-X6525-GKI" > .scmversion
+          echo 'CONFIG_LOCALVERSION="-Max-X6525-GKI"' >> gki_kernel/gki.fragment
+          echo '# CONFIG_LOCALVERSION_AUTO is not set' >> gki_kernel/gki.fragment
 
       # --- PROCESO DE COMPILACIÓN SIMPLIFICADO ---
       # Paso 7: Compilar el Kernel (Primer Intento)
@@ -67,7 +66,7 @@ jobs:
           cd gki_kernel
           while true; do echo "Build in progress - $(date)"; sleep 300; done &
           # Usamos el GKI_DEFCONFIG_FRAGMENT y el BUILD_CONFIG por defecto de GKI
-          GKI_DEFCONFIG_FRAGMENT=gki.fragment LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
+          LOCALVERSION="-Max-X6525-GKI" GKI_DEFCONFIG_FRAGMENT=gki.fragment LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
       
       # Paso 9: Subir el artefacto de compilación
       - name: 9. Upload Build Artifacts
