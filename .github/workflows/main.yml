@@ -1,5 +1,5 @@
 # Nombre del workflow
-name: Build GKI Kernel (GKI-Native Method)
+name: Build GKI Kernel with KernelSU
 
 # Cómo se activa este workflow
 on:
@@ -37,8 +37,6 @@ jobs:
       - name: 5. Create GKI-Native Config Fragment
         run: |
           cd gki_kernel
-          # Este es nuestro nuevo fragmento. Lo construiremos en la Fase 2.
-          # Por ahora, puedes dejarlo así o añadir el bloque de la siguiente sección.
           echo "CONFIG_KSU=y" > gki.fragment
           echo "CONFIG_KSU_SUSFS=y" > gki.fragment
           echo "CONFIG_PROC_FS=y" >> kernelsu.fragment
@@ -50,9 +48,14 @@ jobs:
           echo "CONFIG_DRM=y" >> gki.fragment
           echo "CONFIG_DRM_KMS_HELPER=y" >> gki.fragment
           echo "CONFIG_DRM_MIPI_DSI=y" >> gki.fragment
-          echo "CONFIG_DRM_PANEL_SIMPLE=y" >> gki.fragment
           echo "CONFIG_DRM_BRIDGE=y" >> gki.fragment
+          echo "CONFIG_DRM_FBDEV_EMULATION=y" >> gki.fragment
+          echo "CONFIG_DRM_LOAD_EDID_FIRMWARE=y" >> gki.fragment
+          echo "CONFIG_DRM_DP_AUX_CHARDEV=y" >> gki.fragment
           echo "CONFIG_DRM_PANEL_BRIDGE=y" >> gki.fragment
+          echo "CONFIG_DRM_PANEL_SIMPLE=y" >> gki.fragment
+          echo "CONFIG_DRM_PANEL_ORIENTATION_QUIRKS=y" >> gki.fragment
+          
 
       # --- PASO MODIFICADO ---
       # Paso 6: Personalizar Versión del Kernel
