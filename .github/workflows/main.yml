@@ -49,12 +49,9 @@ jobs:
           echo "CONFIG_DRM_KMS_HELPER=y" >> gki.fragment
           echo "CONFIG_DRM_MIPI_DSI=y" >> gki.fragment
           echo "CONFIG_DRM_BRIDGE=y" >> gki.fragment
-          echo "CONFIG_DRM_FBDEV_EMULATION=y" >> gki.fragment
-          echo "CONFIG_DRM_LOAD_EDID_FIRMWARE=y" >> gki.fragment
-          echo "CONFIG_DRM_DP_AUX_CHARDEV=y" >> gki.fragment
           echo "CONFIG_DRM_PANEL_BRIDGE=y" >> gki.fragment
           echo "CONFIG_DRM_PANEL_SIMPLE=y" >> gki.fragment
-          echo "CONFIG_DRM_PANEL_ORIENTATION_QUIRKS=y" >> gki.fragment
+          echo 'CONFIG_CMDLINE="cgroup_disable=pressure video=DSI-1:720x1612@90"' >> gki.fragment
           
 
       # --- PASO MODIFICADO ---
