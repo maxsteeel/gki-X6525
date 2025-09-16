@@ -48,7 +48,7 @@ jobs:
       - name: 5. Prepare Environment for Stock Build
         run: |
           # 1. Copiamos tu config_stock.txt y la nombramos 'stock_defconfig'
-          cp $GITHUB_WORKSPACE/config_stock.txt gki_kernel/common/arch/arm64/configs/stock_defconfig
+          cat $GITHUB_WORKSPACE/config_stock.txt > gki_kernel/common/arch/arm64/configs/stock_defconfig
           echo "stock_defconfig placed in the kernel tree."
 
           # 2. Aplicamos el parche al Makefile para falsear /proc/config.gz
