@@ -103,7 +103,10 @@ jobs:
         run: |
           cd gki_kernel
           while true; do echo "Build in progress - $(date)"; sleep 300; done &
+          (DEFCONFIG=stock_defconfig LTO=thin BUILD_CONFIG=common/build.config.unisoc build/build.sh) || true
+          cp /home/runner/work/gki-X6525/gki-X6525/gki_kernel/out/android12-5.4/common/modules.order common/android/gki_aarch64_modules
           DEFCONFIG=stock_defconfig LTO=thin BUILD_CONFIG=common/build.config.unisoc build/build.sh
+          
 
       # Paso 10: Subir el artefacto de compilación
       - name: 9. Upload Build Artifacts
