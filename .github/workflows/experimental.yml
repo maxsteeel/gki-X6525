@@ -72,7 +72,7 @@ jobs:
           
           cp common/android/abi_gki_aarch64_unisoc common/android/abi_gki_aarch64
           cat common/android/abi_gki_aarch64_transsion >> common/android/abi_gki_aarch64
-          ls -1 $GITHUB_WORKSPACE/unisoc_modules >> common/android/gki_aarch64_modules
+          curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/unisoc_modules.txt >> common/android/gki_aarch64_modules
           
       # Paso 7: Preparar la configuración para los módulos de Unisoc
       - name: 6. Prepare Environment for Stock Build
