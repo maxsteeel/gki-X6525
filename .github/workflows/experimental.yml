@@ -80,6 +80,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: GKI-Build-Artifacts-5.4-Max-X6525-Next
-          path: gki_kernel/out/android12-5.4-lts/dist/
+          path: gki_kernel/out/android12-5.4/dist/
 
           
