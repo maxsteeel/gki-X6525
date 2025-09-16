@@ -60,6 +60,11 @@ jobs:
           cd ../..
           echo "SUSFS patches applied successfully with manual fix."
 
+          # Este comando elimina el bloque de código que intenta usar los kprobes
+          # que ya no existen en KernelSU-Next, resolviendo el error de compilación.
+          sed -i "/enable_kprobe(&execve_kp);/,/disable_kprobe(&pts_unix98_lookup_kp);/d" gki_kernel/common/drivers/kernelsu/sucompat.c
+          echo "Incompatible kprobe code removed from sucompat.c."
+
       # Paso 6: Crear Fragmento de Configuración GKI-Nativo
       - name: 6. Create GKI-Native Config Fragment
         run: |
