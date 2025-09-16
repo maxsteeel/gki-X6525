@@ -40,10 +40,11 @@ jobs:
           echo "CONFIG_KSU=y" > gki.fragment
           echo "CONFIG_KSU_SUSFS=y" >> gki.fragment
           echo "CONFIG_PROC_FS=y" >> gki.fragment
-          echo "CONFIG_CPU_IDLE=y" >> gki.fragment
-          echo "CONFIG_CPU_IDLE_GOV_MENU=y" >> gki.fragment
-          echo "CONFIG_ARM_CPUIDLE=y" >> gki.fragment
-          echo "CONFIG_ARM_PSCI_CPUIDLE=y" >> gki.fragment
+          echo "# CONFIG_CPU_IDLE is not set" >> gki.fragment
+          echo "# CONFIG_CPU_IDLE_GOV_MENU is not set" >> gki.fragment
+          echo "# CONFIG_ARM_CPUIDLE is not set" >> gki.fragment
+          echo "CONFIG_ARCH_SPRD=y" >> gki.fragment
+          echo "# CONFIG_ARM_PSCI_CPUIDLE is not set" >> gki.fragment
           echo "CONFIG_PM_GENERIC_DOMAINS_SLEEP=y" >> gki.fragment
           echo "CONFIG_DRM=y" >> gki.fragment
           echo "CONFIG_DRM_KMS_HELPER=y" >> gki.fragment
@@ -51,7 +52,7 @@ jobs:
           echo "CONFIG_DRM_BRIDGE=y" >> gki.fragment
           echo "CONFIG_DRM_PANEL_BRIDGE=y" >> gki.fragment
           echo "CONFIG_DRM_PANEL_SIMPLE=y" >> gki.fragment
-          echo 'CONFIG_CMDLINE="processor.max_cstate=1"' >> gki_debug.fragment
+          echo 'CONFIG_CMDLINE="processor.max_cstate=1 cpuidle.off=1"' >> gki_debug.fragment
 
           cp common/android/abi_gki_aarch64_unisoc common/android/abi_gki_aarch64
           cat common/android/abi_gki_aarch64_transsion >> common/android/abi_gki_aarch64
