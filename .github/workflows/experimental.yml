@@ -97,19 +97,35 @@ jobs:
         run: |
           sed -i 's/^echo "\$res"$/echo "-lts-Max-X6525-GKI-Next"/' gki_kernel/common/scripts/setlocalversion
           echo "Kernel version hardcoded to -lts-Max-X6525-GKI-Next"
-
-      # Paso 9: Compilar el Kernel
-      - name: 8. Build Kernel
+          
+      # Paso 8: Compilar los Módulos Explícitamente (Primer Paso)
+      - name: 8. Build Modules Explicitly
         run: |
           cd gki_kernel
-          while true; do echo "Build in progress - $(date)"; sleep 300; done &
-          (DEFCONFIG=stock_defconfig LTO=thin BUILD_CONFIG=common/build.config.unisoc build/build.sh) || true
-          cp /home/runner/work/gki-X6525/gki-X6525/gki_kernel/out/android12-5.4/common/modules.order common/android/gki_aarch64_modules
-          DEFCONFIG=stock_defconfig LTO=thin BUILD_CONFIG=common/build.config.unisoc build/build.sh
-          
+          # Este comando le dice al script que se enfoque solo en compilar los módulos .ko
+          # Esto generará un 'modules.order' correcto y no vacío.
+          (DEFCONFIG=stock_defconfig LTO=thin BUILD_CONFIG=common/build.config.unisoc build/build.sh modules) || true
 
-      # Paso 10: Subir el artefacto de compilación
-      - name: 9. Upload Build Artifacts
+      # Paso 9: Compilación Completa para Actualizar la Lista
+      - name: 9. Full Build to Get Final Module List
+        run: |
+          cd gki_kernel
+          # Ahora hacemos una compilación completa. Fallará con el error de 'modules.order',
+          # pero esta vez la lista generada será la correcta.
+          (DEFCONFIG=stock_defconfig LTO=thin BUILD_CONFIG=common/build.config.unisoc build/build.sh) || true
+
+      # Paso 10: Actualizar Lista y Compilación Final
+      - name: 10. Update Module List & Final Build
+        run: |
+          cd gki_kernel
+          # Copiamos la lista correcta
+          cp out/android12-5.4/common/modules.order common/android/gki_aarch64_modules
+          echo "Lista de módulos actualizada."
+          # La compilación final ahora tendrá éxito
+          DEFCONFIG=stock_defconfig LTO=thin BUILD_CONFIG=common/build.config.unisoc build/build.sh
+      
+      # Paso 11: Subir el artefacto de compilación
+      - name: 11. Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: GKI-Build-Artifacts-5.4-Max-X6525-Next
