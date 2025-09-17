@@ -45,14 +45,19 @@ jobs:
       # Paso 6: Configurar y Compilar
       - name: 6. Configure and Build the Kernel
         run: |
+          sudo mv /usr/bin/ld /usr/bin/ld.bak
+          # 2. Creamos un enlace simbólico que apunta a nuestro enlazador compatible
+          sudo ln -s $GITHUB_WORKSPACE/clang-toolchain/clang-r416183b/bin/lld /usr/bin/ld
+          echo "System linker has been replaced with ld.lld."
+          
           cd kernel_source
           
           export PATH=$GITHUB_WORKSPACE/clang-toolchain/clang-r416183b/bin:$GITHUB_WORKSPACE/toolchain/linux-x86/bin:$GITHUB_WORKSPACE/kernel-toolchain/linux-x86/bin:$GITHUB_WORKSPACE/gcc-aarch64/bin:$PATH
           
           # CORRECCIÓN: Añadir CROSS_COMPILE y CC=clang para usar la toolchain correcta
-          make ARCH=arm64 CROSS_COMPILE=aarch64-linux-android- CC=clang HOSTLD=ld.lld O=out defconfig
+          make ARCH=arm64 CROSS_COMPILE=aarch64-linux-android- CC=clang O=out defconfig
           
-          make ARCH=arm64 CROSS_COMPILE=aarch64-linux-android- CC=clang HOSTLD=ld.lld O=out -j$(nproc --all)
+          make ARCH=arm64 CROSS_COMPILE=aarch64-linux-android- CC=clang O=out -j$(nproc --all)
           
           echo "Kernel build finished."
       # Paso 7: Subir los artefactos
