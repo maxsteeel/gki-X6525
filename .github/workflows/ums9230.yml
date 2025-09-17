@@ -26,9 +26,9 @@ jobs:
           
           # LA SOLUCIÓN: Usamos repo como fue diseñado, apuntando a un repositorio de manifiesto real.
           # REEMPLAZA LA URL con la de tu repositorio de manifiesto.
-          repo init -u https://github.com/maxsteeel/manifest/ -b main --depth=1
+          repo init -u https://github.com/maxsteeel/manifest/ -b main
           
-          repo sync -c --no-tags --no-clone-bundle -j$(nproc --all)
+          repo sync --no-clone-bundle -j$(nproc --all)
           
           # Hacemos checkout al commit específico del kernel
           cd common && git checkout 219d54332a09e8d8741c1e1982f5eae56099de85 && cd ..
