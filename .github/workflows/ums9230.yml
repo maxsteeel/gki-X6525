@@ -1,5 +1,5 @@
 # Nombre del workflow
-name: Build Unisoc Kernel with AOSP Scripts (Corrected)
+name: Build Unisoc Kernel with AOSP Scripts
 
 on:
   workflow_dispatch:
@@ -9,27 +9,21 @@ jobs:
     name: Build Unisoc Kernel
     runs-on: ubuntu-22.04
     steps:
-      # Paso 1: Instalar Dependencias
+      # Pasos 1 y 2 sin cambios
       - name: 1. Install Dependencies
         run: |
           sudo apt-get update && sudo apt-get install -y --no-install-recommends git bc bison build-essential curl flex g++-multilib gcc-multilib gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev libelf-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
 
-      # Paso 2: Preparar la estructura de directorios y clonar los repositorios
       - name: 2. Setup AOSP-like Workspace
         run: |
           mkdir -p kernel
-          
-          # CORRECCIÓN 1: Se clona el repositorio sin especificar una rama,
-          # usando la rama por defecto ('ums9230') que tú indicaste.
+          # Usamos tu versión funcional de kernel/build de 2021
+          git clone https://android.googlesource.com/kernel/build -b master-kernel-build-2021 kernel/build
           git clone https://codeberg.org/ums9230-mainline/linux.git kernel/common
           cd kernel/common && git checkout 219d54332a09e8d8741c1e1982f5eae56099de85 && cd ../..
-          
-          git clone https://android.googlesource.com/kernel/build -b master-kernel-build-2021 kernel/build
-          
           echo "Workspace is ready."
-          
 
-      # Paso 3: Integrar KernelSU-Next
+      # Paso 3 sin cambios
       - name: 3. Integrate KernelSU-Next
         run: |
           cd kernel/common
@@ -37,30 +31,33 @@ jobs:
           bash KernelSU/kernel/setup.sh
           echo "KernelSU-Next integrated."
           
-      # Paso 4: Configurar y Compilar el Kernel con build.sh
-      - name: 4. Configure and Build the Kernel
+      # --- PASO 4: LA CORRECCIÓN CLAVE ---
+      - name: 4. Configure and Build the Kernel (Correct Invocation)
         run: |
-          cd kernel/common
+          # NO nos movemos a kernel/common. Nos quedamos en la raíz.
           
-          # Creamos nuestro archivo de configuración personalizado
-          cat <<EOF > build.config.unisoc
-          # CORRECCIÓN 2: Se usa 'defconfig' como indicaste.
+          # 1. Creamos la configuración DENTRO del directorio del kernel
+          #    También hacemos el comando de KernelSU más robusto usando las variables del script.
+          #    (Nota: '\${OUT_DIR}' evita que se expanda aquí y lo pasa al script)
+          cat <<EOF > kernel/common/build.config.unisoc
           DEFCONFIG=defconfig
-          POST_DEFCONFIG_CMDS="scripts/config --enable KSU && scripts/config --enable KSU_SUSFS"
+          POST_DEFCONFIG_CMDS="scripts/config --file \${OUT_DIR}/.config --enable KSU && scripts/config --file \${OUT_DIR}/.config --enable KSU_SUSFS"
           LTO=thin
           EOF
           
-          echo "Custom build config created."
+          # 2. Definimos KERNEL_DIR como una ruta absoluta y explícita.
+          #    Esto elimina la ambigüedad que causaba el error.
+          export KERNEL_DIR=$(pwd)/kernel/common
           
-          # Ejecutamos el script de compilación oficial de Google
-          BUILD_CONFIG=build.config.unisoc ../build/build.sh
-          
-          echo "Kernel build finished."
+          # 3. Ejecutamos el script desde la raíz, pasándole la configuración.
+          #    Ahora el script sabe exactamente dónde está todo.
+          BUILD_CONFIG=${KERNEL_DIR}/build.config.unisoc kernel/build/build.sh
 
       # Paso 5: Subir los artefactos de compilación
       - name: 5. Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Unisoc-AOSP-Build-Corrected
+          name: Unisoc-AOSP-Build-Corrected-Invocation
           path: |
             kernel/common/out/*
+            
