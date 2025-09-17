@@ -52,7 +52,7 @@ jobs:
           # 2. Cargamos la configuración por defecto para tu dispositivo (defconfig)
           #    Uso el nombre 'ums9230_1h10_defconfig' basado en el 'compatible' de tu dts.
           #    Si da error, podría llamarse de otra forma, como 'ums9230_defconfig'.
-          # make CC=clang O=out ums9230_1h10_defconfig
+          make CC=clang O=out defconfig
           
           # 3. Activamos las opciones de KernelSU en la configuración que acabamos de cargar
           ./scripts/config --file out/.config --enable KSU
@@ -70,5 +70,4 @@ jobs:
           # Los resultados de una compilación estándar están en esta ruta
           path: |
             kernel_source/out/arch/arm64/boot/Image
-            kernel_source/out/arch/arm64/boot/dts/sprd/ums9230*.dtb
             
