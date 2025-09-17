@@ -50,9 +50,9 @@ jobs:
           export PATH=$GITHUB_WORKSPACE/clang-toolchain/clang-r416183b/bin:$GITHUB_WORKSPACE/toolchain/linux-x86/bin:$GITHUB_WORKSPACE/kernel-toolchain/linux-x86/bin:$GITHUB_WORKSPACE/gcc-aarch64/bin:$PATH
           
           # CORRECCIÓN: Añadir CROSS_COMPILE y CC=clang para usar la toolchain correcta
-          make ARCH=arm64 CROSS_COMPILE=aarch64-linux-android- CC=clang O=out defconfig
+          make ARCH=arm64 CROSS_COMPILE=aarch64-linux-android- CC=clang HOSTLD=ld.lld O=out defconfig
           
-          make ARCH=arm64 CROSS_COMPILE=aarch64-linux-android- CC=clang O=out -j$(nproc --all)
+          make ARCH=arm64 CROSS_COMPILE=aarch64-linux-android- CC=clang HOSTLD=ld.lld O=out -j$(nproc --all)
           
           echo "Kernel build finished."
       # Paso 7: Subir los artefactos
