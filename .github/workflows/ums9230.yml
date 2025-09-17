@@ -14,11 +14,11 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            git bc bison build-essential curl flex g++-multilib gnupg gperf \
+            git bc bison build-essential curl flex g++-multilib gcc-multilib gnupg gperf \
             imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev libelf-dev \
             liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 \
             libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev \
-            clang llvm lld gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
+            clang llvm lld 
 
       # --- NUEVO MÉTODO DE DESCARGA ---
       # Paso 2: Clonar el Código Fuente Específico de UMS9230
@@ -46,8 +46,6 @@ jobs:
           cd kernel_source
           # 1. Definimos las variables de entorno para una compilación estándar con Clang
           export ARCH=arm64
-          export CLANG_TRIPLE=aarch64-linux-gnu-
-          export CROSS_COMPILE=aarch64-linux-gnu-
           
           # 2. Cargamos la configuración por defecto para tu dispositivo (defconfig)
           #    Uso el nombre 'ums9230_1h10_defconfig' basado en el 'compatible' de tu dts.
