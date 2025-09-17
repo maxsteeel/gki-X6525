@@ -41,7 +41,7 @@ jobs:
           #    (Nota: '\${OUT_DIR}' evita que se expanda aquí y lo pasa al script)
           cat <<EOF > kernel/common/build.config.unisoc
           DEFCONFIG=defconfig
-          POST_DEFCONFIG_CMDS="scripts/config --file \${OUT_DIR}/.config --enable KSU && scripts/config --file \${OUT_DIR}/.config --enable KSU_SUSFS"
+          POST_DEFCONFIG_CMDS="scripts/config --file out/kernel/common/.config --enable KSU && scripts/config --file out/kernel/common/.config --enable KSU_SUSFS"
           LTO=thin
           EOF
           
