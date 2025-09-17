@@ -42,8 +42,82 @@ jobs:
           git clone https://github.com/KernelSU-Next/KernelSU-Next.git KernelSU
           bash KernelSU/kernel/setup.sh
           echo "KernelSU-Next integrated."
-      # Paso 6: Configurar y Compilar
-      - name: 6. Configure and Build the Kernel
+          
+      # --- PASO 6: EL PARCHE DEFINITIVO ---
+      - name: 6. Apply Full Compatibility Patch
+        run: |
+          cd kernel_source
+          echo "Creating comprehensive patch for bison/flex compatibility..."
+          
+          # Creamos el archivo de parche usando un 'here document'
+          cat << 'EOF' > ../bison_flex_compat.patch
+          --- a/scripts/dtc/dtc-lexer.l
+          +++ b/scripts/dtc/dtc-lexer.l
+          @@ -33,6 +33,14 @@
+            * along with this program; if not, see <http://www.gnu.org/licenses/>.
+            */
+           
+          +%option yylineno
+          +
+          +%{
+          +#include <stdint.h>
+          +#include "dtc.h"
+          +#include "dtc-parser.tab.h"
+          +%}
+          +
+           %option noyywrap
+           %option never-interactive
+           
+          @@ -826,7 +834,7 @@
+           
+           %}
+           
+          -YY_DECL
+          +int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);
+          +#define YY_DECL int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner)
+           {
+                   for (;;) {
+                           int c = getc(srcfile->f);
+          --- a/scripts/dtc/dtc-parser.y
+          +++ b/scripts/dtc/dtc-parser.y
+          @@ -33,6 +33,12 @@
+            * along with this program; if not, see <http://www.gnu.org/licenses/>.
+            */
+           
+          +%define api.pure full
+          +%locations
+          +%parse-param { void *scanner }
+          +%lex-param { void *scanner }
+          +
+           %{
+           #include <stdio.h>
+           #include <stdlib.h>
+          @@ -39,6 +45,7 @@
+           #include <limits.h>
+           #include <string.h>
+           #include <ctype.h>
+          +#include <stdint.h>
+           
+           #include "dtc.h"
+           
+          @@ -74,7 +81,7 @@
+           
+           %}
+           
+          -extern int yylex(void);
+          +extern int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);
+           extern void yyerror(char const *s);
+           
+           %token	T_DTS_V1
+          EOF
+          
+          echo "Applying patch..."
+          # Aplicamos el parche que acabamos de crear
+          patch -p1 < ../bison_flex_compat.patch
+          echo "Patch applied successfully."
+          
+      # Paso 7: Configurar y Compilar
+      - name: 7. Configure and Build the Kernel
         run: |
           sudo mv /usr/bin/ld /usr/bin/ld.bak
           # 2. Creamos un enlace simbólico que apunta a nuestro enlazador compatible
@@ -54,17 +128,6 @@ jobs:
           
           echo "Applying comprehensive patch to fix bison/flex pure_parser errors..."
           
-          # 1. Parche para el Parser (dtc-parser.y) para definir la comunicación
-          sed -i '1i\%define api.pure full\n%locations\n%parse-param { struct dt_info *dti }\n%lex-param { void *scanner }' scripts/dtc/dtc-parser.y
-          
-          # 2. Parche para el Lexer (dtc-lexer.l) para que acepte la nueva comunicación
-          sed -i '1i\%option yylineno\n%{ \n#include "dtc-parser.tab.h"\n%}\n' scripts/dtc/dtc-lexer.l
-          sed -i '/YY_DECL/d' scripts/dtc/dtc-lexer.l
-          echo 'int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);' >> scripts/dtc/dtc-lexer.l
-          echo '#define YY_DECL int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner)' >> scripts/dtc/dtc-lexer.l
-          
-          echo "Patch applied successfully."
-          
           export PATH=$GITHUB_WORKSPACE/clang-toolchain/clang-r416183b/bin:$GITHUB_WORKSPACE/toolchain/linux-x86/bin:$GITHUB_WORKSPACE/kernel-toolchain/linux-x86/bin:$GITHUB_WORKSPACE/gcc-aarch64/bin:$PATH
           
           # CORRECCIÓN: Añadir CROSS_COMPILE y CC=clang para usar la toolchain correcta
@@ -73,8 +136,8 @@ jobs:
           make ARCH=arm64 CROSS_COMPILE=aarch64-linux-android- CC=clang O=out -j$(nproc --all)
           
           echo "Kernel build finished."
-      # Paso 7: Subir los artefactos
-      - name: 7. Upload Build Artifacts
+      # Paso 8: Subir los artefactos
+      - name: 8. Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Unisoc-Kernel-Build
