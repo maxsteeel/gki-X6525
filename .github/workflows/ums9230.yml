@@ -1,5 +1,5 @@
 # Nombre del workflow
-name: Build Unisoc Kernel (Repo Manifest Method)
+name: Build Unisoc Kernel (Repo Method)
 
 on:
   workflow_dispatch:
@@ -9,50 +9,25 @@ jobs:
     name: Build Unisoc Kernel
     runs-on: ubuntu-22.04
     steps:
-      # Paso 1: Liberar Espacio
+      # Pasos 1 y 2 (Sin cambios)
       - name: 1. Free Up Disk Space
         run: |
           echo "Cleaning up runner to free disk space..."
           sudo rm -rf /usr/share/dotnet /opt/ghc "/usr/local/share/boost" "$AGENT_TOOLSDİRECTORY"
           df -h
-
-      # Paso 2: Instalar Dependencias (añadimos 'repo')
       - name: 2. Install Dependencies
         run: |
           sudo apt-get update && sudo apt-get install -y --no-install-recommends repo git bc build-essential curl g++-multilib gcc-multilib gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev libelf-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
 
-      # Paso 3: Sincronizar la "Burbuja de Compilación" con Repo
+      # --- PASO 3: INICIALIZACIÓN CORRECTA DE REPO ---
       - name: 3. Sync Build Environment with Repo
         run: |
-          # Creamos el directorio de trabajo
           mkdir -p kernel-build && cd kernel-build
           
-          git init -b main
+          # LA SOLUCIÓN: Usamos repo como fue diseñado, apuntando a un repositorio de manifiesto real.
+          # REEMPLAZA LA URL con la de tu repositorio de manifiesto.
+          repo init -u https://github.com/maxsteeel/manifest/ -b main --depth=1
           
-          # Creamos el manifiesto en su ubicación estándar
-          mkdir -p .repo/manifests
-          cat << 'EOF' > .repo/manifests/default.xml
-          <?xml version="1.0" encoding="UTF-8"?>
-          <manifest>
-            <remote  name="aosp" fetch="https://android.googlesource.com" review="https://android-review.googlesource.com/" />
-            <remote  name="codeberg" fetch="https://codeberg.org" />
-            <default revision="master-kernel-build-2021" remote="aosp" sync-j="4" />
-            <project path="build" name="kernel/build" />
-            <project path="common" name="ums9230-mainline/linux" remote="codeberg" revision="ums9230" />
-            <project path="prebuilts-master/clang/host/linux-x86" name="platform/prebuilts/clang/host/linux-x86" clone-depth="1" />
-            <project path="kernel/tests" name="kernel/tests" remote="aosp" revision="main" />
-            <project path="kernel/configs" name="kernel/configs" />
-            <project path="prebuilts-master/clang/host/linux-x86" name="platform/prebuilts/clang/host/linux-x86" clone-depth="1" />
-            <project path="prebuilts/build-tools" name="platform/prebuilts/build-tools" clone-depth="1" />
-            <project path="prebuilts/kernel-build-tools" name="kernel/prebuilts/build-tools" clone-depth="1" />
-            <project path="prebuilts/tradefed" name="platform/tools/tradefederation/prebuilts" remote="aosp" revision="main" clone-depth="1" />
-            <project path="prebuilts/asuite" name="platform/prebuilts/asuite" remote="aosp" revision="main" clone-depth="1" />
-            <project path="tools/mkbootimg" name="platform/system/tools/mkbootimg" />
-          </manifest>
-          EOF
-          
-          # Inicializamos y sincronizamos repo usando nuestro manifiesto local
-          repo init -u . --manifest-name=default.xml --depth=1
           repo sync -c --no-tags --no-clone-bundle -j$(nproc --all)
           
           # Hacemos checkout al commit específico del kernel
@@ -66,18 +41,18 @@ jobs:
           bash KernelSU/kernel/setup.sh
           echo "KernelSU-Next integrated."
           
-      # Paso 5: Compilar usando build.sh (ahora funcionará)
+      # Paso 5: Compilar
       - name: 5. Configure and Build the Kernel
         run: |
           cd kernel-build
-          
           cat <<EOF > common/build.config.unisoc
           ARCH=arm64
           DEFCONFIG=defconfig
           LTO=thin
+          KMI_ENFORCED=0
+          BUILD_INITRAMFS=1
           EOF
           
-          # El script build.sh ahora funciona porque repo creó el entorno perfecto
           BUILD_CONFIG=common/build.config.unisoc build/build.sh
 
       # Paso 6: Subir los artefactos
