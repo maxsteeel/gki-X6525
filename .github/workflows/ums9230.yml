@@ -25,7 +25,7 @@ jobs:
       - name: 2. Clone UMS9230 Kernel Source
         run: |
           # Clonamos el repositorio que encontraste
-          git clone https://codeberg.org/ums9230-mainline/linux.git -b android12-5.4 kernel_source
+          git clone https://codeberg.org/ums9230-mainline/linux.git kernel_source
           cd kernel_source
           # Nos movemos al commit exacto para asegurar un estado conocido y estable
           git checkout 219d54332a09e8d8741c1e1982f5eae56099de85
