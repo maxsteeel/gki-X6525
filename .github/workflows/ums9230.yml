@@ -1,5 +1,5 @@
 # Nombre del workflow
-name: Build Unisoc Native Kernel
+name: Build Unisoc Kernel with AOSP Scripts (Corrected)
 
 on:
   workflow_dispatch:
@@ -10,75 +10,57 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       # Paso 1: Instalar Dependencias
-      - name: 1. Free Up Disk Space and Install Dependencies
+      - name: 1. Install Dependencies
         run: |
-          echo "Espacio libre antes de la limpieza:"
-          df -h
-          # Eliminamos directorios grandes de herramientas que no usamos
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf "/usr/local/share/boost"
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-          echo "Espacio libre después de la limpieza:"
-          df -h
-          echo "Espacio liberado con éxito."
-          
           sudo apt-get update && sudo apt-get install -y --no-install-recommends git bc bison build-essential curl flex g++-multilib gcc-multilib gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev libelf-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
 
-      # --- PASO NUEVO Y CLAVE ---
-      # Paso 2: Descargar la Toolchain (Caja de Herramientas)
-      - name: 2. Download Toolchain
+      # Paso 2: Preparar la estructura de directorios y clonar los repositorios
+      - name: 2. Setup AOSP-like Workspace
         run: |
-          # Clonamos la versión de Clang recomendada por Google para estos kernels
-          git clone --depth=1 https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 clang-toolchain
-          # Clonamos el compilador GCC necesario para ARM64
-          git clone --depth=1 https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 gcc-aarch64
-          echo "Toolchains downloaded successfully."
+          mkdir -p kernel
+          
+          # CORRECCIÓN 1: Se clona el repositorio sin especificar una rama,
+          # usando la rama por defecto ('ums9230') que tú indicaste.
+          git clone https://codeberg.org/ums9230-mainline/linux.git kernel/common
+          cd kernel/common && git checkout 219d54332a09e8d8741c1e1982f5eae56099de85 && cd ../..
+          
+          git clone https://android.googlesource.com/kernel/build kernel/build
+          
+          echo "Workspace is ready."
+          
 
-      # Paso 3: Clonar el Código Fuente Específico de UMS9230
-      - name: 3. Clone UMS9230 Kernel Source
+      # Paso 3: Integrar KernelSU-Next
+      - name: 3. Integrate KernelSU-Next
         run: |
-          git clone https://codeberg.org/ums9230-mainline/linux.git kernel_source
-          cd kernel_source
-          git checkout 219d54332a09e8d8741c1e1982f5eae56099de85
-          echo "UMS9230 kernel source downloaded."
-
-      # Paso 4: Integrar KernelSU-Next
-      - name: 4. Integrate KernelSU-Next
-        run: |
-          cd kernel_source
+          cd kernel/common
           git clone https://github.com/KernelSU-Next/KernelSU-Next.git KernelSU
           bash KernelSU/kernel/setup.sh
           echo "KernelSU-Next integrated."
-
-      # --- PASO MODIFICADO Y CORREGIDO ---
-      # Paso 5: Configurar y Compilar el Kernel
-      - name: 5. Configure and Build the Kernel
+          
+      # Paso 4: Configurar y Compilar el Kernel con build.sh
+      - name: 4. Configure and Build the Kernel
         run: |
-          cd kernel_source
+          cd kernel/common
           
-          # 1. Definimos las variables de entorno para que apunten a nuestra nueva caja de herramientas
-          export ARCH=arm64
-          export CLANG_TRIPLE=aarch64-linux-gnu-
-          export CROSS_COMPILE=aarch64-linux-gnu-
-          export PATH=$GITHUB_WORKSPACE/clang-toolchain/bin:$GITHUB_WORKSPACE/gcc-aarch64/bin:$PATH
-          export LD_LIBRARY_PATH=$GITHUB_WORKSPACE/clang-toolchain/lib64:$LD_LIBRARY_PATH
-
-          # 2. Cargamos la configuración por defecto para tu dispositivo (CORREGIDO)
-          make CC=clang O=out defconfig
+          # Creamos nuestro archivo de configuración personalizado
+          cat <<EOF > build.config.unisoc
+          # CORRECCIÓN 2: Se usa 'defconfig' como indicaste.
+          DEFCONFIG=defconfig
+          POST_DEFCONFIG_CMDS="scripts/config --enable KSU && scripts/config --enable KSU_SUSFS"
+          LTO=thin
+          EOF
           
-          # 3. Activamos las opciones de KernelSU en la configuración
-          ./scripts/config --file out/.config --enable KSU
-          ./scripts/config --file out/.config --enable KSU_SUSFS
+          echo "Custom build config created."
           
-          # 4. Compilamos el kernel y los módulos
-          make CC=clang O=out -j$(nproc --all)
+          # Ejecutamos el script de compilación oficial de Google
+          BUILD_CONFIG=build.config.unisoc ../build/build.sh
+          
           echo "Kernel build finished."
 
-      # Paso 6: Subir los artefactos de compilación
-      - name: 6. Upload Build Artifacts
+      # Paso 5: Subir los artefactos de compilación
+      - name: 5. Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Unisoc-Native-Kernel-Build
+          name: Unisoc-AOSP-Build-Corrected
           path: |
-            kernel_source/out/arch/arm64/boot/Image
+            kernel/common/out/*
