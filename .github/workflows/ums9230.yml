@@ -52,9 +52,17 @@ jobs:
           
           cd kernel_source
           
-          echo "Applying patch to fix 'yylloc' duplicate symbol error..."
-          # Insertamos la directiva para un parser puro al inicio del archivo dtc-parser.y
-          sed -i '1i\%define api.pure full' scripts/dtc/dtc-parser.y
+          echo "Applying comprehensive patch to fix bison/flex pure_parser errors..."
+          
+          # 1. Parche para el Parser (dtc-parser.y) para definir la comunicación
+          sed -i '1i\%define api.pure full\n%locations\n%parse-param { struct dt_info *dti }\n%lex-param { void *scanner }' scripts/dtc/dtc-parser.y
+          
+          # 2. Parche para el Lexer (dtc-lexer.l) para que acepte la nueva comunicación
+          sed -i '1i\%option yylineno\n%{ \n#include "dtc-parser.tab.h"\n%}\n' scripts/dtc/dtc-lexer.l
+          sed -i '/YY_DECL/d' scripts/dtc/dtc-lexer.l
+          echo 'int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);' >> scripts/dtc/dtc-lexer.l
+          echo '#define YY_DECL int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner)' >> scripts/dtc/dtc-lexer.l
+          
           echo "Patch applied successfully."
           
           export PATH=$GITHUB_WORKSPACE/clang-toolchain/clang-r416183b/bin:$GITHUB_WORKSPACE/toolchain/linux-x86/bin:$GITHUB_WORKSPACE/kernel-toolchain/linux-x86/bin:$GITHUB_WORKSPACE/gcc-aarch64/bin:$PATH
