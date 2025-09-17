@@ -25,8 +25,8 @@ jobs:
       # Paso 3: Descargar la Toolchain
       - name: 3. Download Toolchain
         run: |
-          
-          git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 gcc-aarch64
+          git clone https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 -b master-kernel-build-2021 clang-toolchain
+          git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 -b master-kernel-build-2021 gcc-aarch64
           echo "Toolchains downloaded successfully."
 
       # Paso 4: Clonar el Código Fuente
@@ -50,12 +50,12 @@ jobs:
         run: |
           cd kernel_source
           
-          export PATH=$GITHUB_WORKSPACE/gcc-aarch64/bin:$PATH
-          export CROSS_COMPILE=$GITHUB_WORKSPACE/gcc-aarch64/bin/aarch64-linux-android-
+          export PATH=$GITHUB_WORKSPACE/clang-toolchain/clang-r416183b/bin:$GITHUB_WORKSPACE/gcc-aarch64/bin:$PATH
           
-          make ARCH=arm64 O=out defconfig 
+          # CORRECCIÓN: Añadir CROSS_COMPILE y CC=clang para usar la toolchain correcta
+          make ARCH=arm64 CROSS_COMPILE=aarch64-linux-android- CC=clang O=out defconfig
           
-          make ARCH=arm64 O=out -j$(nproc --all)
+          make ARCH=arm64 CROSS_COMPILE=aarch64-linux-android- CC=clang O=out -j$(nproc --all)
           
           echo "Kernel build finished."
 
