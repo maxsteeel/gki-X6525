@@ -41,7 +41,7 @@ jobs:
           LTO=thin
           
           # CORRECCIÓN 2: Volvemos a añadir los comandos para activar KernelSU
-          POST_DEFCONFIG_CMDS="scripts/config --enable KSU && scripts/config --enable KSU_SUSFS"
+          KMI_ENFORCED=0
           EOF
           
           # 2. Usamos tu versión funcional de KERNEL_DIR (ruta relativa)
