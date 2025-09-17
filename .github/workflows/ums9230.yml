@@ -1,5 +1,5 @@
 # Nombre del workflow
-name: Build Unisoc Kernel with AOSP Scripts (Final)
+name: Build Unisoc Kernel
 
 on:
   workflow_dispatch:
@@ -9,52 +9,61 @@ jobs:
     name: Build Unisoc Kernel
     runs-on: ubuntu-22.04
     steps:
-      # Pasos 1, 2 y 3 no necesitan cambios
+      # Paso 1: Dependencias
       - name: 1. Install Dependencies
         run: |
           sudo apt-get update && sudo apt-get install -y --no-install-recommends git bc bison build-essential curl flex g++-multilib gcc-multilib gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev libelf-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
 
-      - name: 2. Setup AOSP-like Workspace
+      # Paso 2: Descargar la Toolchain
+      - name: 2. Download Toolchain
         run: |
-          mkdir -p kernel
-          git clone https://android.googlesource.com/kernel/build -b master-kernel-build-2021 kernel/build
-          git clone https://codeberg.org/ums9230-mainline/linux.git kernel/common
-          cd kernel/common && git checkout 219d54332a09e8d8741c1e1982f5eae56099de85 && cd ../..
-          echo "Workspace is ready."
+          git clone --depth=1 https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 clang-toolchain
+          git clone --depth=1 https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 gcc-aarch64
+          echo "Toolchains downloaded successfully."
 
-      - name: 3. Integrate KernelSU-Next
+      # Paso 3: Clonar el Código Fuente
+      - name: 3. Clone UMS9230 Kernel Source
         run: |
-          cd kernel/common
+          git clone https://codeberg.org/ums9230-mainline/linux.git kernel_source
+          cd kernel_source
+          git checkout 219d54332a09e8d8741c1e1982f5eae56099de85
+          echo "UMS9230 kernel source downloaded."
+
+      # Paso 4: Integrar KernelSU-Next
+      - name: 4. Integrate KernelSU-Next
+        run: |
+          cd kernel_source
           git clone https://github.com/KernelSU-Next/KernelSU-Next.git KernelSU
           bash KernelSU/kernel/setup.sh
           echo "KernelSU-Next integrated."
-          
-      # --- PASO 4: CORRECCIÓN DE ARQUITECTURA Y KERNELSU ---
-      - name: 4. Configure and Build the Kernel (Correct Arch)
-        run: |
-          # 1. Creamos la configuración DENTRO del directorio del kernel
-          cat <<EOF > kernel/common/build.config.unisoc
-          # CORRECCIÓN 1: Especificamos la arquitectura correcta
-          ARCH=arm64
-          
-          DEFCONFIG=defconfig
-          LTO=thin
-          
-          # CORRECCIÓN 2: Volvemos a añadir los comandos para activar KernelSU
-          KMI_ENFORCED=0
-          EOF
-          
-          # 2. Usamos tu versión funcional de KERNEL_DIR (ruta relativa)
-          export KERNEL_DIR=kernel/common
-          
-          # 3. Ejecutamos el script desde la raíz. Ahora compilará para arm64.
-          BUILD_CONFIG=${KERNEL_DIR}/build.config.unisoc kernel/build/build.sh
 
-      # Paso 5: Subir los artefactos de compilación
-      - name: 5. Upload Build Artifacts
+      # Paso 5: Configurar y Compilar (El método robusto y directo)
+      - name: 5. Configure and Build the Kernel
+        run: |
+          # Nos movemos al directorio del código fuente para que todas las rutas sean correctas
+          cd kernel_source
+          
+          # 1. Añadimos las herramientas a la RUTA de este paso
+          export PATH=$GITHUB_WORKSPACE/clang-toolchain/bin:$GITHUB_WORKSPACE/gcc-aarch64/bin:$PATH
+          
+          # 2. Cargamos el 'defconfig' pasando las variables DIRECTAMENTE
+          make ARCH=arm64 CROSS_COMPILE=aarch64-linux-android- CC=clang O=out defconfig
+          
+          # 3. Activamos KernelSU. Al estar en este directorio, encontrará './scripts/config' sin problemas
+          ./scripts/config --file out/.config --enable KSU
+          ./scripts/config --file out/.config --enable KSU_SUSFS
+          
+          # 4. Compilamos el kernel
+          make ARCH=arm64 CROSS_COMPILE=aarch64-linux-android- CC=clang O=out -j$(nproc --all)
+          
+          echo "Kernel build finished."
+
+      # Paso 6: Subir los artefactos
+      - name: 6. Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Unisoc-AOSP-Build-Final
+          name: Unisoc-Direct-Build-Final
           path: |
-            kernel/common/out/*
+            kernel_source/out/arch/arm64/boot/Image.gz
+            kernel_source/out/arch/arm64/boot/dts/sprd/ums9230*.dtb
             
