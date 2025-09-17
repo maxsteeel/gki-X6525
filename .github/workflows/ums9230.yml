@@ -1,5 +1,5 @@
 # Nombre del workflow
-name: Build Unisoc Kernel 
+name: Build Unisoc Kernel (Repo Manifest Method)
 
 on:
   workflow_dispatch:
@@ -9,65 +9,78 @@ jobs:
     name: Build Unisoc Kernel
     runs-on: ubuntu-22.04
     steps:
-      # --- PASO NUEVO PARA LIBERAR ESPACIO ---
-      # Paso 1: Liberar Espacio en el Runner
+      # Paso 1: Liberar Espacio
       - name: 1. Free Up Disk Space
         run: |
           echo "Cleaning up runner to free disk space..."
-          sudo rm -rf /usr/share/dotnet /opt/ghc "/usr/local/share/boost" "$AGENT_TOOLSDIRECTORY"
+          sudo rm -rf /usr/share/dotnet /opt/ghc "/usr/local/share/boost" "$AGENT_TOOLSDİRECTORY"
           df -h
-      # Paso 2: Instalar Dependencias (antes era el 1)
+
+      # Paso 2: Instalar Dependencias (añadimos 'repo')
       - name: 2. Install Dependencies
         run: |
-          sudo apt-get update && sudo apt-get install -y --no-install-recommends git bc build-essential curl g++-multilib gcc-multilib gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev libelf-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
-      # Paso 3: Descargar la Toolchain
-      - name: 3. Download Toolchain
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends repo git bc build-essential curl g++-multilib gcc-multilib gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev libelf-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
+
+      # Paso 3: Sincronizar la "Burbuja de Compilación" con Repo
+      - name: 3. Sync Build Environment with Repo
         run: |
-          git clone --depth 1 https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 -b master-kernel-build-2021 clang-toolchain
-          git clone --depth 1 https://android.googlesource.com/platform/prebuilts/build-tools/ -b master-kernel-build-2021 toolchain
-          git clone --depth 1 https://android.googlesource.com/kernel/prebuilts/build-tools/ -b master-kernel-build-2021 kernel-toolchain
-          git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 -b master-kernel-build-2021 gcc-aarch64
-          echo "Toolchains downloaded successfully."
-      # Paso 4: Clonar el Código Fuente
-      - name: 4. Clone UMS9230 Kernel Source
+          # Creamos el directorio de trabajo
+          mkdir -p kernel-build && cd kernel-build
+          
+          # Creamos nuestro manifiesto personalizado
+          cat << 'EOF' > manifest.xml
+          <?xml version="1.0" encoding="UTF-8"?>
+          <manifest>
+            <remote  name="aosp" fetch="https://android.googlesource.com" review="https://android-review.googlesource.com/" />
+            <remote  name="codeberg" fetch="https://codeberg.org" />
+            <default revision="master-kernel-build-2021" remote="aosp" sync-j="4" />
+            <project path="build" name="kernel/build" />
+            <project path="common" name="ums9230-mainline/linux" remote="codeberg" revision="ums9230" />
+            <project path="prebuilts-master/clang/host/linux-x86" name="platform/prebuilts/clang/host/linux-x86" clone-depth="1" />
+            <project path="kernel/tests" name="kernel/tests" remote="aosp" revision="main" />
+            <project path="kernel/configs" name="kernel/configs" />
+            <project path="prebuilts-master/clang/host/linux-x86" name="platform/prebuilts/clang/host/linux-x86" clone-depth="1" />
+            <project path="prebuilts/build-tools" name="platform/prebuilts/build-tools" clone-depth="1" />
+            <project path="prebuilts/kernel-build-tools" name="kernel/prebuilts/build-tools" clone-depth="1" />
+            <project path="prebuilts/tradefed" name="platform/tools/tradefederation/prebuilts" remote="aosp" revision="main" clone-depth="1" />
+            <project path="prebuilts/asuite" name="platform/prebuilts/asuite" remote="aosp" revision="main" clone-depth="1" />
+            <project path="tools/mkbootimg" name="platform/system/tools/mkbootimg" />
+          </manifest>
+          EOF
+          
+          # Inicializamos y sincronizamos repo usando nuestro manifiesto local
+          repo init -u . --manifest-name=manifest.xml --depth=1
+          repo sync -c --no-tags --no-clone-bundle -j$(nproc --all)
+          
+          # Hacemos checkout al commit específico del kernel
+          cd common && git checkout 219d54332a09e8d8741c1e1982f5eae56099de85 && cd ..
+
+      # Paso 4: Integrar KernelSU-Next
+      - name: 4. Integrate KernelSU-Next
         run: |
-          git clone https://codeberg.org/ums9230-mainline/linux.git kernel_source
-          cd kernel_source
-          git checkout 219d54332a09e8d8741c1e1982f5eae56099de85
-          echo "UMS9230 kernel source downloaded."
-      # Paso 5: Integrar KernelSU-Next
-      - name: 5. Integrate KernelSU-Next
-        run: |
-          cd kernel_source
+          cd kernel-build/common
           git clone https://github.com/KernelSU-Next/KernelSU-Next.git KernelSU
           bash KernelSU/kernel/setup.sh
           echo "KernelSU-Next integrated."
-        
-
-      # Paso 6: Configurar y Compilar
-      - name: 6. Configure and Build the Kernel
+          
+      # Paso 5: Compilar usando build.sh (ahora funcionará)
+      - name: 5. Configure and Build the Kernel
         run: |
-          sudo mv /usr/bin/ld /usr/bin/ld.bak
-          # 2. Creamos un enlace simbólico que apunta a nuestro enlazador compatible
-          sudo ln -s $GITHUB_WORKSPACE/clang-toolchain/clang-r416183b/bin/lld /usr/bin/ld
-          echo "System linker has been replaced with ld.lld."
+          cd kernel-build
           
-          cd kernel_source
+          cat <<EOF > common/build.config.unisoc
+          ARCH=arm64
+          DEFCONFIG=defconfig
+          LTO=thin
+          EOF
           
-          echo "Applying comprehensive patch to fix bison/flex pure_parser errors..."
-          
-          export PATH=$GITHUB_WORKSPACE/clang-toolchain/clang-r416183b/bin:$GITHUB_WORKSPACE/toolchain/linux-x86/bin:$GITHUB_WORKSPACE/kernel-toolchain/linux-x86/bin:$GITHUB_WORKSPACE/gcc-aarch64/bin
-          
-          # CORRECCIÓN: Añadir CROSS_COMPILE y CC=clang para usar la toolchain correcta
-          make ARCH=arm64 CROSS_COMPILE=aarch64-linux-android- CC=clang O=out defconfig
-          
-          make ARCH=arm64 CROSS_COMPILE=aarch64-linux-android- CC=clang O=out -j$(nproc --all)
-          
-          echo "Kernel build finished."
-      # Paso 7: Subir los artefactos
-      - name: 7. Upload Build Artifacts
+          # El script build.sh ahora funciona porque repo creó el entorno perfecto
+          BUILD_CONFIG=common/build.config.unisoc build/build.sh
+
+      # Paso 6: Subir los artefactos
+      - name: 6. Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Unisoc-Kernel-Build
+          name: Unisoc-Kernel-Repo-Build
           path: |
-            kernel_source/out/*
+            kernel-build/common/out/
