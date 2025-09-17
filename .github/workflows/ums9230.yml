@@ -52,6 +52,11 @@ jobs:
           
           cd kernel_source
           
+          echo "Applying patch to fix 'yylloc' duplicate symbol error..."
+          # Insertamos la directiva para un parser puro al inicio del archivo dtc-parser.y
+          sed -i '1i\%define api.pure full' scripts/dtc/dtc-parser.y
+          echo "Patch applied successfully."
+          
           export PATH=$GITHUB_WORKSPACE/clang-toolchain/clang-r416183b/bin:$GITHUB_WORKSPACE/toolchain/linux-x86/bin:$GITHUB_WORKSPACE/kernel-toolchain/linux-x86/bin:$GITHUB_WORKSPACE/gcc-aarch64/bin:$PATH
           
           # CORRECCIÓN: Añadir CROSS_COMPILE y CC=clang para usar la toolchain correcta
@@ -64,6 +69,6 @@ jobs:
       - name: 7. Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Unisoc-Direct-Build-Final
+          name: Unisoc-Kernel-Build
           path: |
             kernel_source/out/*
