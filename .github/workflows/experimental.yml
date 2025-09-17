@@ -73,6 +73,7 @@ jobs:
           cp common/android/abi_gki_aarch64_unisoc common/android/abi_gki_aarch64
           cat common/android/abi_gki_aarch64_transsion >> common/android/abi_gki_aarch64
           curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/unisoc_modules.txt >> common/android/gki_aarch64_modules
+          curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/unisoc_modules.txt >>out/android12-5.4/common/modules.order 
           
       # Paso 7: Preparar la configuración para los módulos de Unisoc
       - name: 6. Prepare Environment for Stock Build
@@ -99,42 +100,42 @@ jobs:
           echo "Kernel version hardcoded to -lts-Max-X6525-GKI-Next"
           
       # Paso 8: Generar la Configuración del Kernel
-      - name: 8. Generate Kernel Config
-        run: |
-          cd gki_kernel
+      # - name: 8. Generate Kernel Config
+        # run: |
+          # cd gki_kernel
           # La ÚNICA misión de este paso es crear el archivo .config. No debe fallar.
-          DEFCONFIG=stock_defconfig BUILD_CONFIG=common/build.config.unisoc build/build.sh defconfig
-          echo ".config file created successfully from stock_defconfig."
+          # DEFCONFIG=stock_defconfig BUILD_CONFIG=common/build.config.unisoc build/build.sh defconfig
+          # echo ".config file created successfully from stock_defconfig."
 
       # Paso 9: Compilación Inicial (para generar modules.order)
-      - name: 9. Initial Build (to generate modules.order)
-        run: |
-          cd gki_kernel
+      # - name: 9. Initial Build (to generate modules.order)
+        # run: |
+          # cd gki_kernel
           # Ahora que .config existe, compilamos todo.
           # Se espera que falle al final por la diferencia en la lista de módulos.
-          (DEFCONFIG=stock_defconfig BUILD_CONFIG=common/build.config.unisoc build/build.sh) || true
+          # (DEFCONFIG=stock_defconfig BUILD_CONFIG=common/build.config.unisoc build/build.sh) || true
 
       # Paso 10: Actualizar la Lista de Módulos
-      - name: 10. Update Module List
-        run: |
-          cd gki_kernel
+      # - name: 10. Update Module List
+        # run: |
+          # cd gki_kernel
           # Copiamos la lista de módulos que SÍ se generó en el paso anterior.
-          if [ -f out/android12-5.4/common/modules.order ]; then
-            cp out/android12-5.4/common/modules.order common/android/gki_aarch64_modules
-            echo "Module list updated successfully."
-          else
-            echo "ERROR: modules.order was not generated. The build failed before the module check."
-            exit 1
-          fi
+          # if [ -f out/android12-5.4/common/modules.order ]; then
+            # cp out/android12-5.4/common/modules.order common/android/gki_aarch64_modules
+            # echo "Module list updated successfully."
+          # else
+            # echo "ERROR: modules.order was not generated. The build failed before the module check."
+            # exit 1
+          # fi
 
       # Paso 11: Compilación Final y Empaquetado
-      - name: 11. Final Build & Packaging
+      - name: 8. Final Build & Packaging
         run: |
           cd gki_kernel
           # Con la lista de módulos ya actualizada, esta compilación final tendrá éxito.
           DEFCONFIG=stock_defconfig BUILD_CONFIG=common/build.config.unisoc build/build.sh
       # Paso 12: Subir el artefacto de compilación
-      - name: 12. Upload Build Artifacts
+      - name: 9. Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: GKI-Build-Artifacts-5.4-Max-X6525-Next
