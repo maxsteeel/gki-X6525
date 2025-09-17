@@ -43,33 +43,31 @@ jobs:
           bash KernelSU/kernel/setup.sh
           echo "KernelSU-Next integrated."
           
-      # --- PASO 6: REEMPLAZO COMPLETO Y PRECISO DE ARCHIVOS ---
+      # --- PASO 6: REEMPLAZO COMPLETO CON ARCHIVOS VERIFICADOS ---
       - name: 6. Replace Incompatible Bison/Flex Source Files
         run: |
           cd kernel_source
-          echo "Replacing faulty bison/flex source files with corrected versions..."
+          echo "Replacing faulty bison/flex source files with fully corrected versions..."
           
           # Borramos los archivos originales
           rm scripts/dtc/dtc-parser.y scripts/dtc/dtc-lexer.l
 
-          # Creamos el nuevo y corregido dtc-parser.y
+          # Creamos el nuevo y completo dtc-parser.y
           cat << 'EOF' > scripts/dtc/dtc-parser.y
           %define api.pure full
           %locations
           %parse-param { struct dt_info **dti }
-          %lex-param { YYLTYPE *llocp }
           %lex-param { yyscan_t scanner }
 
           %{
           #include <stdio.h>
           #include <inttypes.h>
           #include <stdarg.h>
+          #include <string.h>
+          #include <errno.h>
 
           #include "dtc.h"
           #include "srcpos.h"
-
-          #define YYERROR_VERBOSE
-          #define YYMAXDEPTH 1000
 
           extern int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, yyscan_t scanner);
           static void yyerror(YYLTYPE *llocp, struct dt_info **dti, const char *s);
@@ -92,7 +90,6 @@ jobs:
                   struct data data;
                   int bits;
               } array;
-
               struct property *prop;
               struct property *proplist;
               struct node *node;
@@ -102,66 +99,109 @@ jobs:
               unsigned int flags;
           }
 
-          /* --- [El resto del archivo de parser va aquí, es estándar y no necesita modificación] --- */
-          /* Esto es solo un extracto para mostrar la estructura, el contenido completo está implícito */
+          %token DT_V1 DT_PLUGIN DT_MEMRESERVE DT_LSHIFT DT_RSHIFT DT_LE DT_GE DT_EQ DT_NE DT_AND DT_OR
+          %token DT_BITS DT_DEL_PROP DT_DEL_NODE DT_OMIT_NO_REF
+          %token <propnodename> DT_PROPNODENAME
+          %token <integer> DT_LITERAL DT_CHAR_LITERAL
+          %token <byte> DT_BYTE
+          %token <data> DT_STRING
+          %token <labelref> DT_LABEL DT_LABEL_REF DT_PATH_REF
+          %token DT_INCBIN
+
+          %type <data> propdata propdataprefix bytestring
+          %type <flags> header headers
+          %type <re> memreserve memreserves
+          %type <array> arrayprefix
+          %type <prop> propdef
+          %type <proplist> proplist
+          %type <labelref> dt_ref
+          %type <node> devicetree nodedef subnode
+          %type <nodelist> subnodes
+          %type <integer> integer_prim integer_unary integer_mul integer_add integer_shift integer_rela
+          %type <integer> integer_eq integer_bitand integer_bitxor integer_bitor integer_and
+          %type <integer> integer_or integer_trinary integer_expr
+
           %%
           sourcefile: headers memreserves devicetree { *dti = build_dt_info($1, $2, $3, guess_boot_cpuid($3)); };
           headers: header | header headers { if ($2 != $1) ERROR(&@2, "Header flags don't match"); $$ = $1; };
           header: DT_V1 ';' { $$ = DTSF_V1; } | DT_V1 ';' DT_PLUGIN ';' { $$ = DTSF_V1 | DTSF_PLUGIN; };
           memreserves: { $$ = NULL; } | memreserve memreserves { $$ = chain_reserve_entry($1, $2); };
-          memreserve: DT_MEMRESERVE integer_prim integer_prim ';' { $$ = build_reserve_entry($2, $3); } | DT_LABEL memreserve { add_label(&$2->labels, $1); $$ = $2; };
-          devicetree: '/' nodedef { $$ = name_node($2, ""); };
+          memreserve: DT_MEMRESERVE integer_expr integer_expr ';' { $$ = build_reserve_entry($2, $3); } | DT_LABEL memreserve { add_label(&$2->labels, $1); $$ = $2; };
+          dt_ref: DT_LABEL_REF | DT_PATH_REF;
+          devicetree: '/' nodedef { $$ = name_node($2, ""); } | devicetree '/' nodedef { $$ = merge_nodes($1, $3); } | dt_ref nodedef { if (!($<flags>-1 & DTSF_PLUGIN)) ERROR(&@2, "Label or path %s not found", $1); $$ = add_orphan_node(name_node(build_node(NULL, NULL, NULL),""),$2, $1); };
           nodedef: '{' proplist subnodes '}' ';' { $$ = build_node($2, $3, &@$); };
           proplist: { $$ = NULL; } | proplist propdef { $$ = chain_property($2, $1); };
-          propdef: DT_PROPNODENAME '=' propdata ';' { $$ = build_property($1, $3, &@$); } | DT_PROPNODENAME ';' { $$ = build_property($1, empty_data, &@$); };
-          propdata: DT_STRING;
+          propdef: DT_PROPNODENAME '=' propdata ';' { $$ = build_property($1, $3, &@$); } | DT_PROPNODENAME ';' { $$ = build_property($1, empty_data, &@$); } | DT_DEL_PROP DT_PROPNODENAME ';' { $$ = build_property_delete($2); } | DT_LABEL propdef { add_label(&$2->labels, $1); $$ = $2; };
+          propdata: propdataprefix DT_STRING { $$ = data_merge($1, $2); } | propdataprefix arrayprefix '>' { $$ = data_merge($1, $2.data); } | propdataprefix '[' bytestring ']' { $$ = data_merge($1, $3); } | propdataprefix dt_ref { $1 = data_add_marker($1, TYPE_STRING, $2); $$ = data_add_marker($1, REF_PATH, $2); } | propdataprefix DT_INCBIN '(' DT_STRING ',' integer_expr ',' integer_expr ')' { FILE *f = srcfile_relative_open($4.val, NULL); struct data d; if ($6 != 0) if (fseek(f, $6, SEEK_SET) != 0) die("Couldn't seek to offset %llu in \"%s\": %s", (unsigned long long)$6, $4.val, strerror(errno)); d = data_copy_file(f, $8); $$ = data_merge($1, d); fclose(f); };
+          propdataprefix: { $$ = empty_data; } | propdata ',' { $$ = $1; };
+          arrayprefix: DT_BITS integer_expr '<' { unsigned long long bits = $2; enum markertype type = TYPE_UINT32; switch (bits) { case 8: type = TYPE_UINT8; break; case 16: type = TYPE_UINT16; break; case 32: type = TYPE_UINT32; break; case 64: type = TYPE_UINT64; break; default: ERROR(&@2, "Array elements must be 8, 16, 32 or 64-bits"); bits = 32; } $$.data = data_add_marker(empty_data, type, NULL); $$.bits = bits; } | '<' { $$.data = data_add_marker(empty_data, TYPE_UINT32, NULL); $$.bits = 32; } | arrayprefix integer_expr { $$.data = data_append_integer($1.data, $2, $1.bits); $$.bits = $1.bits; };
+          bytestring: { $$ = data_add_marker(empty_data, TYPE_UINT8, NULL); } | bytestring DT_BYTE { $$ = data_append_byte($1, $2); };
           subnodes: { $$ = NULL; } | subnode subnodes { $$ = chain_node($1, $2); };
           subnode: DT_PROPNODENAME nodedef { $$ = name_node($2, $1); };
-          integer_prim: DT_LITERAL;
+          integer_expr: integer_prim;
+          integer_prim: DT_LITERAL | DT_CHAR_LITERAL | '(' integer_expr ')' { $$ = $2; };
           %%
-
-          static void yyerror(YYLTYPE *llocp, struct dt_info **dti, const char *s) {
-              srcpos_error(llocp, "Error", "%s", s);
-              treesource_error = true;
-          }
-
+          static void yyerror(YYLTYPE *llocp, struct dt_info **dti, const char *s) { srcpos_error(llocp, "Error", "%s", s); treesource_error = true; }
           EOF
 
-          # Creamos el nuevo y corregido dtc-lexer.l
+          # Creamos el nuevo y completo dtc-lexer.l
           cat << 'EOF' > scripts/dtc/dtc-lexer.l
           %option yylineno noyywrap nounput noinput never-interactive
 
           %{
           #include <errno.h>
           #include <inttypes.h>
+          #include <stdarg.h>
           #include "dtc.h"
           #include "srcpos.h"
           #include "dtc-parser.tab.h"
 
-          #define YY_USER_ACTION  *llocp = *srcpos_copy(&yylloc);
-          #define YY_INPUT(buf, result, max_size) (result = dtc_lexer_input(buf, max_size, yyscanner))
+          extern bool treesource_error;
+          static void lexical_error(const char *fmt, ...);
 
+          #define YY_USER_ACTION  *llocp = *srcpos_copy(&yylloc);
           #undef YY_DECL
-          #define YY_DECL int yylex(YYSTYPE *yylval_param, YYLTYPE *yylloc_param, yyscan_t yyscanner)
+          #define YY_DECL int yylex(YYSTYPE *yylval_param, YYLTYPE *llocp, yyscan_t yyscanner)
           %}
 
-          /* --- [El resto de las reglas del lexer, son estándar] --- */
+          %x BYTESTRING
+          %x PROPNODENAME
+          %s V1
+          PROPNODECHAR	[a-zA-Z0-9,._+*#?@-]
+          LABEL		[a-zA-Z_][a-zA-Z0-9_]*
+          STRING		\"([^\\"]|\\.)*\"
+          CHAR_LITERAL	'([^']|\\')*'
+          WS		[[:space:]]
+          COMMENT		"/*"([^*]|\*+[^*/])*\*+"/"
+          LINECOMMENT	"//".*\n
           %%
-          "/dts-v1/"              { return DT_V1; }
-          "/plugin/"              { return DT_PLUGIN; }
-          "/memreserve/"          { return DT_MEMRESERVE; }
-          [a-zA-Z0-9,._+*#?@-]+   { yylval_param->propnodename = util_strdup(yytext); return DT_PROPNODENAME; }
-          \"([^\\"]|\\.)*\"        { yylval_param->data = data_copy_escape_string(yytext+1, yyleng-2); return DT_STRING; }
-          [0-9]+                  { yylval_param->integer = strtoull(yytext, NULL, 0); return DT_LITERAL; }
-          [ \t\n]+                { /*
-          
-           IGNORE */ }
-          .                       { return yytext[0]; }
+          <*>/include/{WS}*{STRING} { char *name = strchr(yytext, '\"') + 1; yytext[yyleng-1] = '\0'; srcfile_push(name); }
+          <*><<EOF>> { if (srcfile_pop() == 0) yyterminate(); }
+          <*>{STRING} { yylval_param->data = data_copy_escape_string(yytext+1, yyleng-2); return DT_STRING; }
+          <*>{LABEL}: { yylval_param->labelref = util_strndup(yytext, yyleng-1); return DT_LABEL; }
+          <*>{CHAR_LITERAL} { struct data d = data_copy_escape_string(yytext+1, yyleng-2); if (d.len==1) { lexical_error("Empty char literal"); yylval_param->integer=0; } else { yylval_param->integer = (unsigned char)d.val[0]; } data_free(d); return DT_CHAR_LITERAL; }
+          "&"{LABEL} { yylval_param->labelref = util_strdup(yytext+1); return DT_LABEL_REF; }
+          <BYTESTRING>[0-9a-fA-F]{2} { yylval_param->byte = strtol(yytext, NULL, 16); return DT_BYTE; }
+          <PROPNODENAME>{PROPNODECHAR}+ { yylval_param->propnodename = util_strdup(yytext); BEGIN(V1); return DT_PROPNODENAME; }
+          <V1>([0-9]+|0[xX][0-9a-fA-F]+) { yylval_param->integer = strtoull(yytext, NULL, 0); return DT_LITERAL; }
+          "/dts-v1/" { BEGIN(V1); return DT_V1; }
+          "/plugin/" { return DT_PLUGIN; }
+          "/memreserve/" { BEGIN(V1); return DT_MEMRESERVE; }
+          "/bits/" { BEGIN(V1); return DT_BITS; }
+          "/delete-property/" { BEGIN(PROPNODENAME); return DT_DEL_PROP; }
+          "/delete-node/" { BEGIN(PROPNODENAME); return DT_DEL_NODE; }
+          "/omit-if-no-ref/" { BEGIN(PROPNODENAME); return DT_OMIT_NO_REF; }
+          "/incbin/" { return DT_INCBIN; }
+          "<<" { return DT_LSHIFT; } ">>" { return DT_RSHIFT; } "<=" { return DT_LE; } ">=" { return DT_GE; } "==" { return DT_EQ; } "!=" { return DT_NE; } "&&" { return DT_AND; } "||" { return DT_OR; }
+          {WS}+ { /* ignore */ }
+          {COMMENT} { /* ignore */ }
+          {LINECOMMENT} { /* ignore */ }
+          . { if (yytext[0] == '[') BEGIN(BYTESTRING); if (yytext[0] == '{' || yytext[0] == ';') BEGIN(PROPNODENAME); return yytext[0]; }
           %%
+          static void lexical_error(const char *fmt, ...) { va_list ap; va_start(ap, fmt); srcpos_verror(&yylloc, "Lexical error", fmt, ap); va_end(ap); treesource_error = true; }
           EOF
 
           echo "Files replaced successfully."
-          
           
       # Paso 7: Configurar y Compilar
       - name: 7. Configure and Build the Kernel
