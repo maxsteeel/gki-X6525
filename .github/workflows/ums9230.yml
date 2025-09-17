@@ -27,7 +27,7 @@ jobs:
       # Paso 3: Clonar el Código Fuente Específico de UMS9230
       - name: 3. Clone UMS9230 Kernel Source
         run: |
-          git clone https://codeberg.org/ums9230-mainline/linux.git -b android12-5.4 kernel_source
+          git clone https://codeberg.org/ums9230-mainline/linux.git kernel_source
           cd kernel_source
           git checkout 219d54332a09e8d8741c1e1982f5eae56099de85
           echo "UMS9230 kernel source downloaded."
