@@ -1,0 +1,74 @@
+# Nombre del workflow
+name: Build Unisoc Native Kernel
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Unisoc Kernel
+    runs-on: ubuntu-22.04
+    steps:
+      # Paso 1: Instalar Dependencias (incluyendo el compilador Clang)
+      - name: 1. Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            git bc bison build-essential curl flex g++-multilib gcc-multilib gnupg gperf \
+            imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev libelf-dev \
+            liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 \
+            libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev \
+            clang llvm lld
+
+      # --- NUEVO MÉTODO DE DESCARGA ---
+      # Paso 2: Clonar el Código Fuente Específico de UMS9230
+      - name: 2. Clone UMS9230 Kernel Source
+        run: |
+          # Clonamos el repositorio que encontraste
+          git clone https://codeberg.org/ums9230-mainline/linux.git -b android12-5.4 kernel_source
+          cd kernel_source
+          # Nos movemos al commit exacto para asegurar un estado conocido y estable
+          git checkout 219d54332a09e8d8741c1e1982f5eae56099de85
+          echo "UMS9230 kernel source downloaded successfully."
+
+      # Paso 3: Integrar KernelSU-Next
+      - name: 3. Integrate KernelSU-Next
+        run: |
+          cd kernel_source
+          git clone https://github.com/KernelSU-Next/KernelSU-Next.git KernelSU
+          bash KernelSU/kernel/setup.sh
+          echo "KernelSU-Next integrated."
+
+      # --- NUEVO MÉTODO DE COMPILACIÓN ---
+      # Paso 4: Configurar y Compilar el Kernel
+      - name: 4. Configure and Build the Kernel
+        run: |
+          cd kernel_source
+          # 1. Definimos las variables de entorno para una compilación estándar con Clang
+          export ARCH=arm64
+          export CLANG_TRIPLE=aarch64-linux-gnu-
+          export CROSS_COMPILE=aarch64-linux-gnu-
+          
+          # 2. Cargamos la configuración por defecto para tu dispositivo (defconfig)
+          #    Uso el nombre 'ums9230_1h10_defconfig' basado en el 'compatible' de tu dts.
+          #    Si da error, podría llamarse de otra forma, como 'ums9230_defconfig'.
+          # make CC=clang O=out ums9230_1h10_defconfig
+          
+          # 3. Activamos las opciones de KernelSU en la configuración que acabamos de cargar
+          ./scripts/config --file out/.config --enable KSU
+          ./scripts/config --file out/.config --enable KSU_SUSFS
+          
+          # 4. Compilamos el kernel y los módulos con todos los núcleos de la CPU
+          make CC=clang O=out -j$(nproc --all)
+          echo "Kernel build finished."
+
+      # Paso 5: Subir los artefactos de compilación
+      - name: 5. Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Unisoc-Native-Kernel-Build
+          # Los resultados de una compilación estándar están en esta ruta
+          path: |
+            kernel_source/out/arch/arm64/boot/Image
+            kernel_source/out/arch/arm64/boot/dts/sprd/ums9230*.dtb
+            
