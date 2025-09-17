@@ -27,8 +27,11 @@ jobs:
           # Creamos el directorio de trabajo
           mkdir -p kernel-build && cd kernel-build
           
-          # Creamos nuestro manifiesto personalizado
-          cat << 'EOF' > manifest.xml
+          git init -b main
+          
+          # Creamos el manifiesto en su ubicación estándar
+          mkdir -p .repo/manifests
+          cat << 'EOF' > .repo/manifests/default.xml
           <?xml version="1.0" encoding="UTF-8"?>
           <manifest>
             <remote  name="aosp" fetch="https://android.googlesource.com" review="https://android-review.googlesource.com/" />
@@ -49,7 +52,7 @@ jobs:
           EOF
           
           # Inicializamos y sincronizamos repo usando nuestro manifiesto local
-          repo init -u . --manifest-name=manifest.xml --depth=1
+          repo init -u . --manifest-name=default.xml --depth=1
           repo sync -c --no-tags --no-clone-bundle -j$(nproc --all)
           
           # Hacemos checkout al commit específico del kernel
