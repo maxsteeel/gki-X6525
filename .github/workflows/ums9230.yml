@@ -47,14 +47,14 @@ jobs:
           export PATH=$GITHUB_WORKSPACE/clang-toolchain/bin:$GITHUB_WORKSPACE/gcc-aarch64/bin:$PATH
           
           # 2. Cargamos el 'defconfig' pasando las variables DIRECTAMENTE
-          make ARCH=arm64 CROSS_COMPILE=aarch64-linux-android- CC=clang O=out defconfig
+          make ARCH=arm64 O=out defconfig
           
           # 3. Activamos KernelSU. Al estar en este directorio, encontrará './scripts/config' sin problemas
           ./scripts/config --file out/.config --enable KSU
           ./scripts/config --file out/.config --enable KSU_SUSFS
           
           # 4. Compilamos el kernel
-          make ARCH=arm64 CROSS_COMPILE=aarch64-linux-android- CC=clang O=out -j$(nproc --all)
+          make ARCH=arm64 O=out -j$(nproc --all)
           
           echo "Kernel build finished."
 
