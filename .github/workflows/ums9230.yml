@@ -47,7 +47,7 @@ jobs:
           
           # 2. Definimos KERNEL_DIR como una ruta absoluta y explícita.
           #    Esto elimina la ambigüedad que causaba el error.
-          export KERNEL_DIR=$(pwd)/kernel/common
+          export KERNEL_DIR=kernel/common
           
           # 3. Ejecutamos el script desde la raíz, pasándole la configuración.
           #    Ahora el script sabe exactamente dónde está todo.
