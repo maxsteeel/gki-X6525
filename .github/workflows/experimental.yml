@@ -25,37 +25,36 @@ jobs:
           git clone https://github.com/KernelSU-Next/KernelSU-Next.git KernelSU
           bash KernelSU/kernel/setup.sh
 
-      # Paso 5: Preparar Archivos de Configuración
+      # Paso 5: Preparar Archivos de Configuración (Sin cambios)
       - name: 5. Prepare Config Files
         run: |
           curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/config_stock.txt > gki_kernel/common/arch/arm64/configs/stock_defconfig
-          echo "stock_defconfig downloaded."
-          
           curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/unisoc_modules.txt > gki_kernel/unisoc_modules.list
-          echo "Unisoc module list downloaded."
 
-      # Paso 6: Compilar el Kernel con las Opciones Correctas
+      # --- PASO 6: CORREGIDO Y SIMPLIFICADO ---
       - name: 6. Build The Kernel
         run: |
           cd gki_kernel
           
-          # 1. Usar nuestra configuración, no la de GKI.
-          export DEFCONFIG=stock_defconfig
+          # 1. Creamos nuestra "hoja de pedido" con todas las instrucciones.
+          cat <<EOF > common/build.config.unisoc
+          # Usar nuestra configuración, no la de GKI.
+          DEFCONFIG=stock_defconfig
           
-          # 2. Desactivar TODAS las verificaciones de KMI.
-          #    KMI_ENFORCED=0 es la clave que faltaba.
-          export KMI_ENFORCED=0
-          export TRIM_NONLISTED_KMI=0
-          export KMI_SYMBOL_LIST_STRICT_MODE=0
+          # Desactivar TODAS las verificaciones de KMI.
+          KMI_ENFORCED=0
+          TRIM_NONLISTED_KMI=0
+          KMI_SYMBOL_LIST_STRICT_MODE=0
           
-          # 3. LA SOLUCIÓN DIRECTA: Le damos al build system nuestra lista de módulos como la verdad absoluta.
-          export MODULES_ORDER=$(pwd)/unisoc_modules.list
+          # Usar nuestra lista de módulos como la verdad absoluta.
+          MODULES_ORDER=../unisoc_modules.list
           
-          # 4. Opciones de optimización.
-          export LTO=thin
+          # Opciones de optimización.
+          LTO=thin
+          EOF
           
-          # El comando de compilación
-          build/build.sh
+          # 2. Le entregamos la hoja de pedido directamente al script.
+          BUILD_CONFIG=common/build.config.unisoc build/build.sh
 
       # Paso 7: Subir los artefactos
       - name: 7. Upload Build Artifacts
