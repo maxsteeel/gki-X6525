@@ -7,7 +7,7 @@ on:
 jobs:
   build:
     name: Build Kernel
-    runs-on: ubuntu-22-04
+    runs-on: ubuntu-latest
     steps:
       # Pasos 1-4 (Sin cambios)
       - name: 1. Install Dependencies
