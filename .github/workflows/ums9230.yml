@@ -46,22 +46,22 @@ jobs:
           cd kernel-build
           cat <<EOF > common/build.config.unisoc
           ARCH=arm64
-          LLVM_IAS=1
+          CLANG_TRIPLE=aarch64-linux-gnu-
           CROSS_COMPILE=aarch64-linux-android-
-          CROSS_COMPILE_COMPAT=aarch64-linux-android-
           LINUX_GCC_CROSS_COMPILE_PREBUILTS_BIN=prebuilts/gcc-aarch64/bin
-          LINUX_GCC_CROSS_COMPILE_COMPAT_PREBUILTS_BIN=prebuilts/gcc-aarch64/bin
           MAKE_GOALS="
           Image
           "
           FILES="
           arch/arm64/boot/Image
           "
-          LLVM=1
+          CC=clang
+          LD=ld.lld
+          NM=llvm-nm
+          OBJCOPY=llvm-objcopy
           DEPMOD=depmod
-          CLANG_PREBUILT_BIN=prebuilts-master/clang/host/linux-x86/clang-r416183b/bin
-          BUILDTOOLS_PREBUILT_BIN=prebuilts/build-tools/path/linux-x86
-          KCFLAGS="${KCFLAGS} -D__ANDROID_COMMON_KERNEL__"
+          CLANG_PREBUILT_BIN=prebuilts-master/clang/host/linux-x86/clang-r383902/bin
+          BUILDTOOLS_PREBUILT_BIN=build/build-tools/path/linux-x86
           EXTRA_CMDS=''
           STOP_SHIP_TRACEPRINTK=1
           IN_KERNEL_MODULES=1
