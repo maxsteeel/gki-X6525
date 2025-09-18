@@ -71,6 +71,10 @@ jobs:
           EOF
           
           # 2. Le entregamos la hoja de pedido directamente al script.
+          (BUILD_CONFIG=common/build.config.unisoc build/build.sh) || true
+
+          cp /home/runner/work/gki-X6525/gki-X6525/gki_kernel/out/android12-5.4/common/modules.order common/android/gki_aarch64_modules
+
           BUILD_CONFIG=common/build.config.unisoc build/build.sh
 
       # Paso 7: Subir los artefactos
