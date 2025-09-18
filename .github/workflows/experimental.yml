@@ -47,17 +47,8 @@ jobs:
           ABI_DEFINITION=android/abi_gki_aarch64.xml
           KMI_SYMBOL_LIST=android/abi_gki_aarch64
           ADDITIONAL_KMI_SYMBOL_LISTS="
-          android/abi_gki_aarch64_db845c
-          android/abi_gki_aarch64_hikey960
-          android/abi_gki_aarch64_hikey
-          android/abi_gki_aarch64_fcnt
-          android/abi_gki_aarch64_qcom
           android/abi_gki_aarch64_unisoc
-          android/abi_gki_aarch64_exynos
-          android/abi_gki_aarch64_sunxi
-          android/abi_gki_aarch64_virtual_device
           android/abi_gki_aarch64_transsion
-          android/abi_gki_aarch64_telechips
           "
           FILES="${FILES}
           arch/arm64/boot/Image.lz4
@@ -72,6 +63,7 @@ jobs:
           KMI_SYMBOL_LIST_STRICT_MODE=0
           
           # Usar nuestra lista de módulos como la verdad absoluta.
+          MODULES_ORDER=android/gki_aarch64_modules
           KERNEL_CMDLINE="cpuidle.off=1"
           
           # Opciones de optimización.
