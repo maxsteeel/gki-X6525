@@ -38,8 +38,31 @@ jobs:
           
           # 1. Creamos nuestra "hoja de pedido" con todas las instrucciones.
           cat <<EOF > common/build.config.unisoc
-          ARCH=arm64
-          SUBARCH=arm64
+          . ${ROOT_DIR}/${KERNEL_DIR}/build.config.common
+          . ${ROOT_DIR}/${KERNEL_DIR}/build.config.aarch64
+          
+          MAKE_GOALS="${MAKE_GOALS}
+          Image.lz4
+          "
+          ABI_DEFINITION=android/abi_gki_aarch64.xml
+          KMI_SYMBOL_LIST=android/abi_gki_aarch64
+          ADDITIONAL_KMI_SYMBOL_LISTS="
+          android/abi_gki_aarch64_db845c
+          android/abi_gki_aarch64_hikey960
+          android/abi_gki_aarch64_hikey
+          android/abi_gki_aarch64_fcnt
+          android/abi_gki_aarch64_qcom
+          android/abi_gki_aarch64_unisoc
+          android/abi_gki_aarch64_exynos
+          android/abi_gki_aarch64_sunxi
+          android/abi_gki_aarch64_virtual_device
+          android/abi_gki_aarch64_transsion
+          android/abi_gki_aarch64_telechips
+          "
+          FILES="${FILES}
+          arch/arm64/boot/Image.lz4
+          "
+          
           # Usar nuestra configuración, no la de GKI.
           DEFCONFIG=stock_defconfig
           
