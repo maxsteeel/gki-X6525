@@ -72,7 +72,7 @@ jobs:
           KMI_SYMBOL_LIST_STRICT_MODE=0
           
           # Usar nuestra lista de módulos como la verdad absoluta.
-          MODULES_ORDER=../unisoc_modules.list
+          KERNEL_CMDLINE="cpuidle.off=1"
           
           # Opciones de optimización.
           LTO=thin
