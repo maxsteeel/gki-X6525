@@ -47,17 +47,17 @@ jobs:
           # --- Reemplazo del Compilador (tu idea anterior) ---
           CLANG_PATH="$(pwd)/prebuilts-master/clang/host/linux-x86/clang-r416183b/bin/clang"
           GCC_SYMLINK_PATH="$(pwd)/prebuilts/gcc/linux-x86/bin/aarch64-linux-android-gcc"
-          echo "Creating symlink for GCC -> Clang"
-          ln -s "$CLANG_PATH" "$GCC_SYMLINK_PATH"
+          # echo "Creating symlink for GCC -> Clang"
+          # ln -s "$CLANG_PATH" "$GCC_SYMLINK_PATH"
           
           # --- Reemplazo del Enlazador (tu nueva idea) ---
           GOOGLE_LD_PATH="$(pwd)/prebuilts/gcc/linux-x86/bin/aarch64-linux-android-ld.bfd"
           SYSTEM_LD_PATH="/usr/bin/ld"
-          echo "Replacing system LD with Google's LD"
-          sudo mv "$SYSTEM_LD_PATH" "$SYSTEM_LD_PATH.bak"
-          sudo ln -s "$GOOGLE_LD_PATH" "$SYSTEM_LD_PATH"
+          # echo "Replacing system LD with Google's LD"
+          # sudo mv "$SYSTEM_LD_PATH" "$SYSTEM_LD_PATH.bak"
+          # sudo ln -s "$GOOGLE_LD_PATH" "$SYSTEM_LD_PATH"
 
-          echo "Toolchain swap complete."
+          # echo "Toolchain swap complete."
 
           
       # Paso 6: Compilar
@@ -67,10 +67,7 @@ jobs:
           cat <<EOF > common/build.config.unisoc
           ARCH=arm64
           LLVM_IAS=1
-          CROSS_COMPILE=aarch64-linux-android-
-          CROSS_COMPILE_COMPAT=aarch64-linux-android-
-          LINUX_GCC_CROSS_COMPILE_PREBUILTS_BIN=prebuilts/gcc/linux-x86/bin
-          LINUX_GCC_CROSS_COMPILE_COMPAT_PREBUILTS_BIN=prebuilts/gcc/linux-x86/bin
+          CROSS_COMPILE=aarch64-linux-gnu-
           MAKE_GOALS="
           Image
           "
@@ -81,8 +78,6 @@ jobs:
           DEPMOD=depmod
           CLANG_PREBUILT_BIN=prebuilts-master/clang/host/linux-x86/clang-r416183b/bin
           BUILDTOOLS_PREBUILT_BIN=prebuilts/build-tools/path/linux-x86
-          KCFLAGS="${KCFLAGS} -D__ANDROID_COMMON_KERNEL__"
-          EXTRA_CMDS=''
           STOP_SHIP_TRACEPRINTK=1
           IN_KERNEL_MODULES=1
           DO_NOT_STRIP_MODULES=1
@@ -101,3 +96,4 @@ jobs:
           name: Unisoc-Kernel-Repo-Build
           path: |
             kernel-build/common/out/
+            
