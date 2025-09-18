@@ -39,35 +39,18 @@ jobs:
           git clone https://github.com/KernelSU-Next/KernelSU-Next.git KernelSU
           bash KernelSU/kernel/setup.sh
           echo "KernelSU-Next integrated."
-
-      - name: 5. Force Correct Compiler and Linker
-        run: |
-          cd kernel-build
           
-          # --- Reemplazo del Compilador (tu idea anterior) ---
-          CLANG_PATH="$(pwd)/prebuilts-master/clang/host/linux-x86/clang-r416183b/bin/clang"
-          GCC_SYMLINK_PATH="$(pwd)/prebuilts/gcc/linux-x86/bin/aarch64-linux-android-gcc"
-          # echo "Creating symlink for GCC -> Clang"
-          # ln -s "$CLANG_PATH" "$GCC_SYMLINK_PATH"
-          
-          # --- Reemplazo del Enlazador (tu nueva idea) ---
-          GOOGLE_LD_PATH="$(pwd)/prebuilts/gcc/linux-x86/bin/aarch64-linux-android-ld.bfd"
-          SYSTEM_LD_PATH="/usr/bin/ld"
-          # echo "Replacing system LD with Google's LD"
-          # sudo mv "$SYSTEM_LD_PATH" "$SYSTEM_LD_PATH.bak"
-          # sudo ln -s "$GOOGLE_LD_PATH" "$SYSTEM_LD_PATH"
-
-          # echo "Toolchain swap complete."
-
-          
-      # Paso 6: Compilar
-      - name: 6. Configure and Build the Kernel
+      # Paso 5: Compilar
+      - name: 5. Configure and Build the Kernel
         run: |
           cd kernel-build
           cat <<EOF > common/build.config.unisoc
           ARCH=arm64
           LLVM_IAS=1
-          CROSS_COMPILE=aarch64-linux-gnu-
+          CROSS_COMPILE=aarch64-linux-android-
+          CROSS_COMPILE_COMPAT=aarch64-linux-android-
+          LINUX_GCC_CROSS_COMPILE_PREBUILTS_BIN=prebuilts/gcc-aarch64/bin
+          LINUX_GCC_CROSS_COMPILE_COMPAT_PREBUILTS_BIN=prebuilts/gcc-aarch64/bin
           MAKE_GOALS="
           Image
           "
@@ -78,6 +61,8 @@ jobs:
           DEPMOD=depmod
           CLANG_PREBUILT_BIN=prebuilts-master/clang/host/linux-x86/clang-r416183b/bin
           BUILDTOOLS_PREBUILT_BIN=prebuilts/build-tools/path/linux-x86
+          KCFLAGS="${KCFLAGS} -D__ANDROID_COMMON_KERNEL__"
+          EXTRA_CMDS=''
           STOP_SHIP_TRACEPRINTK=1
           IN_KERNEL_MODULES=1
           DO_NOT_STRIP_MODULES=1
@@ -89,11 +74,10 @@ jobs:
           
           BUILD_CONFIG=common/build.config.unisoc build/build.sh
 
-      # Paso 7: Subir los artefactos
-      - name: 7. Upload Build Artifacts
+      # Paso 6: Subir los artefactos
+      - name: 6. Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Unisoc-Kernel-Repo-Build
           path: |
             kernel-build/common/out/
-            
