@@ -41,6 +41,8 @@ jobs:
         run: |
           cd gki_kernel
           
+          > common/android/gki_aarch64_modules
+          
           # 1. Creamos nuestra "hoja de pedido" con todas las instrucciones.
           cat <<EOF > common/build.config.unisoc
           . /home/runner/work/gki-X6525/gki-X6525/gki_kernel/common/build.config.common
@@ -76,9 +78,6 @@ jobs:
           EOF
           
           # 2. Le entregamos la hoja de pedido directamente al script.
-          (BUILD_CONFIG=common/build.config.unisoc build/build.sh) || true
-
-          cp /home/runner/work/gki-X6525/gki-X6525/gki_kernel/common/android/gki_aarch64_modules out/android12-5.4/common/modules.order
 
           BUILD_CONFIG=common/build.config.unisoc build/build.sh
 
