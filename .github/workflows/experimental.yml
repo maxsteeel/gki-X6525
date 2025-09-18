@@ -38,8 +38,8 @@ jobs:
           
           # 1. Creamos nuestra "hoja de pedido" con todas las instrucciones.
           cat <<EOF > common/build.config.unisoc
-          . ${ROOT_DIR}/${KERNEL_DIR}/build.config.common
-          . ${ROOT_DIR}/${KERNEL_DIR}/build.config.aarch64
+          . /home/runner/work/gki-X6525/gki-X6525/gki_kernel/common/build.config.common
+          . /home/runner/work/gki-X6525/gki-X6525/gki_kernel/common/build.config.aarch64
           
           MAKE_GOALS="${MAKE_GOALS}
           Image.lz4
