@@ -38,6 +38,8 @@ jobs:
           
           # 1. Creamos nuestra "hoja de pedido" con todas las instrucciones.
           cat <<EOF > common/build.config.unisoc
+          ARCH=arm64
+          SUBARCH=arm64
           # Usar nuestra configuración, no la de GKI.
           DEFCONFIG=stock_defconfig
           
