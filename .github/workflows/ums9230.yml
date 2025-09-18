@@ -64,8 +64,6 @@ jobs:
           BUILDTOOLS_PREBUILT_BIN=build/build-tools/path/linux-x86
           EXTRA_CMDS=''
           STOP_SHIP_TRACEPRINTK=1
-          IN_KERNEL_MODULES=1
-          DO_NOT_STRIP_MODULES=1
           DEFCONFIG=defconfig
           LTO=thin
           KMI_ENFORCED=0
