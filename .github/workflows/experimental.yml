@@ -68,7 +68,7 @@ jobs:
           KMI_SYMBOL_LIST_STRICT_MODE=0
           
           # Usar nuestra lista de módulos como la verdad absoluta.
-          IN_KERNEL_MODULES=0
+          MODULES_ORDER=android/gki_aarch64_modules
           KERNEL_CMDLINE="cpuidle.off=1"
           
           # Opciones de optimización.
@@ -77,6 +77,8 @@ jobs:
           
           # 2. Le entregamos la hoja de pedido directamente al script.
 
+          (BUILD_CONFIG=common/build.config.unisoc build/build.sh modules) || true
+          
           BUILD_CONFIG=common/build.config.unisoc build/build.sh
 
 
