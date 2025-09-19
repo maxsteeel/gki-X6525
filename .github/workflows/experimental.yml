@@ -28,6 +28,11 @@ jobs:
       # Paso 5: Preparar Archivos de Configuración (Sin cambios)
       - name: 5. Prepare Config Files
         run: |
+
+          echo "CONFIG_KSU=y" > gki_kernel/gki.fragment
+          echo "CONFIG_KSU_SUSFS=y" >> gki_kernel/gki.fragment
+          echo "CONFIG_PROC_FS=y" >> gki_kernel/gki.fragment
+          
           curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/config_stock.txt > gki_kernel/common/arch/arm64/configs/stock_defconfig
           
           curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/ums9230-1h10-go.dts > gki_kernel/common/arch/arm64/boot/dts/sprd/ums9230-1h10-go.dts
@@ -86,9 +91,9 @@ jobs:
           
           # 2. Le entregamos la hoja de pedido directamente al script.
           # (BUILD_CONFIG=common/build.config.unisoc build/build.sh oldconfig) || true
-          (BUILD_CONFIG=common/build.config.unisoc build/build.sh modules_install) || true
+          (GKI_DEFCONFIG_FRAGMENT=gki.fragment BUILD_CONFIG=common/build.config.unisoc build/build.sh modules_install) || true
           
-          BUILD_CONFIG=common/build.config.unisoc build/build.sh
+          GKI_DEFCONFIG_FRAGMENT=gki.fragment BUILD_CONFIG=common/build.config.unisoc build/build.sh
 
 
       # Paso 7: Subir los artefactos
