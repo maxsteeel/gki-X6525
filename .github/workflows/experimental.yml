@@ -29,7 +29,7 @@ jobs:
       - name: 5. Prepare Config Files
         run: |
           curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/config_stock.txt > gki_kernel/common/arch/arm64/configs/stock_defconfig
-          curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/unisoc_modules.txt > gki_kernel/unisoc_modules.list
+          curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/unisoc_modules.txt > gki_kernel/common/android/gki_aarch64_modules
           curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/ums9230-1h10-go.dts > gki_kernel/common/arch/arm64/boot/dts/sprd/ums9230-1h10-go.dts
           
           sed -i '/sp9860g-1h10.dtb/a \\t\t\tums9230-1h10-go.dtb \\' gki_kernel/common/arch/arm64/boot/dts/sprd/Makefile
@@ -78,6 +78,10 @@ jobs:
           EOF
           
           # 2. Le entregamos la hoja de pedido directamente al script.
+
+          (BUILD_CONFIG=common/build.config.unisoc build/build.sh) || true
+
+          cp /home/runner/work/gki-X6525/gki-X6525/gki_kernel/out/android12-5.4/common/modules.order /home/runner/work/gki-X6525/gki-X6525/gki_kernel/common/android/gki_aarch64_modules
 
           BUILD_CONFIG=common/build.config.unisoc build/build.sh
 
