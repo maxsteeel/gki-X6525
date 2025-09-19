@@ -29,8 +29,7 @@ jobs:
       - name: 5. Prepare Config Files
         run: |
           curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/config_stock.txt > gki_kernel/common/arch/arm64/configs/stock_defconfig
-          curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/unisoc_modules.txt > gki_kernel/common/android/gki_aarch64_modules
-          curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/unisoc_modules.txt > gki_kernel/out/android12-5.4/common/modules.order
+          
           curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/ums9230-1h10-go.dts > gki_kernel/common/arch/arm64/boot/dts/sprd/ums9230-1h10-go.dts
           
           sed -i '/sp9860g-1h10.dtb/a \\t\t\tums9230-1h10-go.dtb \\' gki_kernel/common/arch/arm64/boot/dts/sprd/Makefile
@@ -41,8 +40,6 @@ jobs:
       - name: 6. Build The Kernel
         run: |
           cd gki_kernel
-          
-          > common/android/gki_aarch64_modules
           
           # 1. Creamos nuestra "hoja de pedido" con todas las instrucciones.
           cat <<EOF > common/build.config.unisoc
@@ -71,7 +68,7 @@ jobs:
           KMI_SYMBOL_LIST_STRICT_MODE=0
           
           # Usar nuestra lista de módulos como la verdad absoluta.
-          MODULES_ORDER=android/gki_aarch64_modules
+          IN_KERNEL_MODULES=0
           KERNEL_CMDLINE="cpuidle.off=1"
           
           # Opciones de optimización.
@@ -80,11 +77,8 @@ jobs:
           
           # 2. Le entregamos la hoja de pedido directamente al script.
 
-          (BUILD_CONFIG=common/build.config.unisoc build/build.sh) || true
-
-          cp /home/runner/work/gki-X6525/gki-X6525/gki_kernel/out/android12-5.4/common/modules.order /home/runner/work/gki-X6525/gki-X6525/gki_kernel/common/android/gki_aarch64_modules
-
           BUILD_CONFIG=common/build.config.unisoc build/build.sh
+
 
       # Paso 7: Subir los artefactos
       - name: 7. Upload Build Artifacts
