@@ -78,7 +78,7 @@ jobs:
           cd gki_kernel
           
           # 1. Usamos el mismo entorno de GKI para compilar SOLO el módulo de KernelSU
-          BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh M=KernelSU-Next/kernel
+          BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh SKIP_MRPROPER=1 M=KernelSU-Next/kernel
 
           # 2. Verificamos que se creó el .ko y lo movemos al directorio de módulos principal
           # para que el siguiente paso lo encuentre y lo procese.
