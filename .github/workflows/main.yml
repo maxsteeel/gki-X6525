@@ -37,8 +37,7 @@ jobs:
       - name: 5. Create GKI-Native Config Fragment
         run: |
           cd gki_kernel
-          echo "CONFIG_KSU=y" > gki.fragment
-          echo "CONFIG_KSU_SUSFS=y" > gki.fragment
+          echo "CONFIG_KSU=m" > gki.fragment
           echo "CONFIG_PROC_FS=y" >> kernelsu.fragment
           echo "CONFIG_CPU_IDLE=y" >> gki.fragment
           echo "CONFIG_CPU_IDLE_GOV_MENU=y" >> gki.fragment
