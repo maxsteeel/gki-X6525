@@ -80,6 +80,7 @@ jobs:
           echo "### Compilando el módulo de KernelSU por separado... ###"
 
           # 1. Cargamos el mismo entorno que usa build.sh para tener el compilador correcto (Clang).
+          ln -s common/build.config.gki.aarch64 build.config
           source build/_setup_env.sh
           
           # 2. Ejecutamos 'make' directamente, apuntando al mismo directorio de salida (O=...)
