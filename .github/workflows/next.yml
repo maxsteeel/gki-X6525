@@ -80,7 +80,7 @@ jobs:
           echo "### Compilando el módulo de KernelSU por separado... ###"
 
           # 1. Cargamos el mismo entorno que usa build.sh para tener el compilador correcto (Clang).
-          source build/build.env.sh
+          source build/_setup_env.sh
           
           # 2. Ejecutamos 'make' directamente, apuntando al mismo directorio de salida (O=...)
           #    y especificando que solo queremos compilar la carpeta de KernelSU-Next como un módulo (M=...).
