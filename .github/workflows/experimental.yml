@@ -90,6 +90,8 @@ jobs:
           
           # 2. Copiamos NUESTRA defconfig al directorio de salida y la renombramos a .config
           #    Este es el paso clave que faltaba y que resuelve el error.
+          mkdir out && cd out && mkdir android12-5.4 && cd ..
+          
           cp common/arch/arm64/configs/stock_defconfig out/android12-5.4/.config
           
           # 3. Ejecutamos 'make olddefconfig' para que el sistema valide y complete
