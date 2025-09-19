@@ -73,6 +73,20 @@ jobs:
           while true; do echo "Build in progress - $(date)"; sleep 300; done &
           GKI_DEFCONFIG_FRAGMENT=gki.fragment LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
 
+      - name: 7.1. Build and Place KernelSU Module (LA SOLUCIÓN)
+        run: |
+          cd gki_kernel
+          
+          # 1. Usamos el mismo entorno de GKI para compilar SOLO el módulo de KernelSU
+          BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh "make -C ${KERNEL_DIR} M=KernelSU/kernel"
+
+          # 2. Verificamos que se creó el .ko y lo movemos al directorio de módulos principal
+          # para que el siguiente paso lo encuentre y lo procese.
+          echo "Buscando el módulo kernelsu.ko..."
+          find out/android12-5.4/ -name "kernelsu.ko"
+          cp out/android12-5.4/KernelSU/kernel/kernelsu.ko out/android12-5.4/dist
+          echo "kernelsu.ko movido a la raíz de salida."
+          
       # Paso 8: Subir el artefacto de compilación
       - name: 8. Upload Build Artifacts
         uses: actions/upload-artifact@v4
