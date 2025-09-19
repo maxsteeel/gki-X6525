@@ -38,7 +38,6 @@ jobs:
         run: |
           cd gki_kernel
           echo "CONFIG_KSU=m" > gki.fragment
-          echo "CONFIG_KSU_SUSFS=y" >> gki.fragment
           echo "CONFIG_PROC_FS=y" >> gki.fragment
           echo "# CONFIG_CPU_IDLE is not set" >> gki.fragment
           echo "# CONFIG_CPU_IDLE_GOV_MENU is not set" >> gki.fragment
