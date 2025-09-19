@@ -57,7 +57,7 @@ jobs:
           cat common/android/abi_gki_aarch64_transsion >> common/android/abi_gki_aarch64
           curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/ums9230-1h10-go.dts > common/arch/arm64/boot/dts/sprd/ums9230-1h10-go.dts
           
-          sed -i '/sp9860g-1h10.dtb/a \\t\t\tums9230-1h10-go.dtb \\' gki_kernel/common/arch/arm64/boot/dts/sprd/Makefile
+          sed -i '/sp9860g-1h10.dtb/a \\t\t\tums9230-1h10-go.dtb \\' common/arch/arm64/boot/dts/sprd/Makefile
           echo "DTS Makefile updated to include ums9230-1h10-go.dtb."
           
       # Paso 6: Personalizar Versión del Kernel
