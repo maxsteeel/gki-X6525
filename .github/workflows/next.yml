@@ -20,8 +20,8 @@ jobs:
       - name: 3. Download Kernel Source
         run: |
           mkdir gki_kernel && cd gki_kernel
-          repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4 --no-repo-verify
-          sed -i 's|path="common" name="kernel/common" revision="android12-5.4"|path="common" name="kernel/common" revision="android12-5.4.210_r00"|' .repo/manifest.xml
+          repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4-lts --no-repo-verify
+          
           repo sync -c --no-clone-bundle -j$(nproc --all)
 
       # Paso 4: Integrar KernelSU-Next
@@ -37,7 +37,7 @@ jobs:
       - name: 5. Create GKI-Native Config Fragment
         run: |
           cd gki_kernel
-          echo "CONFIG_KSU=y" > gki.fragment
+          echo "CONFIG_KSU=m" > gki.fragment
           echo "CONFIG_KSU_SUSFS=y" >> gki.fragment
           echo "CONFIG_PROC_FS=y" >> gki.fragment
           echo "# CONFIG_CPU_IDLE is not set" >> gki.fragment
@@ -56,6 +56,10 @@ jobs:
 
           cp common/android/abi_gki_aarch64_unisoc common/android/abi_gki_aarch64
           cat common/android/abi_gki_aarch64_transsion >> common/android/abi_gki_aarch64
+          curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/ums9230-1h10-go.dts > common/arch/arm64/boot/dts/sprd/ums9230-1h10-go.dts
+          
+          sed -i '/sp9860g-1h10.dtb/a \\t\t\tums9230-1h10-go.dtb \\' gki_kernel/common/arch/arm64/boot/dts/sprd/Makefile
+          echo "DTS Makefile updated to include ums9230-1h10-go.dtb."
           
       # Paso 6: Personalizar Versión del Kernel
       - name: 6. Set Custom Kernel Version
