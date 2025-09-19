@@ -91,10 +91,10 @@ jobs:
           cp common/arch/arm64/configs/stock_defconfig out/android12-5.4/.config
 
           while true; do echo "Build in progress - $(date)"; sleep 300; done &
-          
+          export LTO=thin
           # 3. Ejecutamos 'make olddefconfig' para que el sistema valide y complete
           #    nuestra configuración, preparándola para la compilación.
-          (make -C common O=../out/android12-5.4 olddefconfig) || true
+          (make -C common O=../out/android12-5.4 LTO=thin olddefconfig) || true
 
           # --- PARTE B: Compilar el Kernel Principal ---
           echo "### Compilando el kernel principal... ###"
