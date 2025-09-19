@@ -73,19 +73,23 @@ jobs:
           while true; do echo "Build in progress - $(date)"; sleep 300; done &
           GKI_DEFCONFIG_FRAGMENT=gki.fragment LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
 
-      - name: 7.1. Build and Place KernelSU Module (LA SOLUCIÓN)
+      - name: 7.1. Build and Place KernelSU LKM
         run: |
           cd gki_kernel
           
-          # 1. Usamos el mismo entorno de GKI para compilar SOLO el módulo de KernelSU
-          BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh SKIP_MRPROPER=1 M=KernelSU-Next/kernel
+          echo "### Compilando el módulo de KernelSU por separado... ###"
 
-          # 2. Verificamos que se creó el .ko y lo movemos al directorio de módulos principal
-          # para que el siguiente paso lo encuentre y lo procese.
-          echo "Buscando el módulo kernelsu.ko..."
-          find out/android12-5.4/ -name "kernelsu.ko"
-          cp out/android12-5.4/KernelSU-Next/kernel/kernelsu.ko out/android12-5.4/dist
-          echo "kernelsu.ko movido a la raíz de salida."
+          # 1. Cargamos el mismo entorno que usa build.sh para tener el compilador correcto (Clang).
+          source build/build.env.sh
+          
+          # 2. Ejecutamos 'make' directamente, apuntando al mismo directorio de salida (O=...)
+          #    y especificando que solo queremos compilar la carpeta de KernelSU-Next como un módulo (M=...).
+          make -C common O=../out/android12-5.4 M=KernelSU-Next/kernel modules
+
+          # 3. Copiamos el .ko resultante a la raíz de la salida para que el siguiente paso lo encuentre.
+          echo "Buscando y moviendo kernelsu.ko..."
+          cp $(find out/android12-5.4/ -name "kernelsu.ko") out/android12-5.4/dist/
+          echo "kernelsu.ko listo para ser empaquetado."
           
       # Paso 8: Subir el artefacto de compilación
       - name: 8. Upload Build Artifacts
