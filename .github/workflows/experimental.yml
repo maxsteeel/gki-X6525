@@ -28,10 +28,6 @@ jobs:
       # Paso 5: Preparar Archivos de Configuración (Sin cambios)
       - name: 5. Prepare Config Files
         run: |
-
-          echo "CONFIG_KSU=y" > gki_kernel/gki.fragment
-          echo "CONFIG_KSU_SUSFS=y" >> gki_kernel/gki.fragment
-          echo "CONFIG_PROC_FS=y" >> gki_kernel/gki.fragment
           
           curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/config_stock.txt > gki_kernel/common/arch/arm64/configs/stock_defconfig
           
@@ -93,6 +89,8 @@ jobs:
           mkdir out && cd out && mkdir android12-5.4 && cd ..
           
           cp common/arch/arm64/configs/stock_defconfig out/android12-5.4/.config
+
+          while true; do echo "Build in progress - $(date)"; sleep 300; done &
           
           # 3. Ejecutamos 'make olddefconfig' para que el sistema valide y complete
           #    nuestra configuración, preparándola para la compilación.
@@ -105,16 +103,16 @@ jobs:
           make -C common O=../out/android12-5.4 Image modules
 
           # --- PARTE C: Compilar el Módulo de KernelSU ---
-          echo "### Compilando el módulo de KernelSU por separado... ###"
+          # echo "### Compilando el módulo de KernelSU por separado... ###"
           
           # Ya no necesitamos 'modules_prepare' porque la compilación principal ya lo hizo todo.
           # Compilamos directamente el módulo de KernelSU.
-          make -C common O=../out/android12-5.4 M=KernelSU-Next/kernel modules
+          # make -C common O=../out/android12-5.4 M=KernelSU-Next/kernel modules
           
           # --- PARTE D: Mover el artefacto ---
-          echo "Buscando y moviendo kernelsu.ko..."
-          (cp $(find out/android12-5.4/ -name "kernelsu.ko") out/android12-5.4/) || true
-          echo "kernelsu.ko listo para ser empaquetado."
+          # echo "Buscando y moviendo kernelsu.ko..."
+          # (cp $(find out/android12-5.4/ -name "kernelsu.ko") out/android12-5.4/) || true
+          # echo "kernelsu.ko listo para ser empaquetado."
 
 
       # Paso 7: Subir los artefactos
