@@ -21,8 +21,8 @@ jobs:
         run: |
           mkdir gki_kernel && cd gki_kernel
           repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4 --no-repo-verify
-          sed -i 's|path="common" name="kernel/common" revision="android12-5.4"|path="common" name="kernel/common" revision="android12-5.4.210_r00"|' .repo/manifest.xml
-          repo sync -c --no-clone-bundle -j$(nproc --all)
+          
+          repo sync -c --no-tags --no-clone-bundle -j$(nproc --all)
       - name: 4. Integrate KernelSU
         run: |
           cd gki_kernel
