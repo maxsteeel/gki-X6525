@@ -100,7 +100,7 @@ jobs:
           echo "### Compilando el kernel principal... ###"
 
           # Ejecutamos 'make' con los objetivos que necesitamos (Image.lz4 y módulos estándar)
-          make -C common O=../out/android12-5.4 Image modules
+          LTO=thin make -C common O=../out/android12-5.4 Image modules
 
           # --- PARTE C: Compilar el Módulo de KernelSU ---
           # echo "### Compilando el módulo de KernelSU por separado... ###"
