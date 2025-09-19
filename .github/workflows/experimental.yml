@@ -76,7 +76,7 @@ jobs:
           
           curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/ums9230-1h10-go.dts > common/arch/arm64/boot/dts/sprd/ums9230-1h10-go.dts
           
-          sed -i '/sp9860g-1h10.dtb/a \\t\t\tums9230-1h10-go.dtb \\' gki_kernel/common/arch/arm64/boot/dts/sprd/Makefile
+          sed -i '/sp9860g-1h10.dtb/a \\t\t\tums9230-1h10-go.dtb \\' common/arch/arm64/boot/dts/sprd/Makefile
           echo "DTS Makefile updated to include ums9230-1h10-go.dtb."
           
       # Paso 7: Preparar la configuración para los módulos de Unisoc
@@ -110,7 +110,7 @@ jobs:
           cd gki_kernel
           # Este comando le dice al script que se enfoque solo en compilar los módulos .ko
           # Esto generará un 'modules.order' correcto y no vacío.
-          (DEFCONFIG=stock_defconfig LTO=thin BUILD_CONFIG=common/build.config.unisoc build/build.sh modules) || true
+          (DEFCONFIG=stock_defconfig KERNEL_CMDLINE="cpuidle.off=1" LTO=thin BUILD_CONFIG=common/build.config.unisoc build/build.sh modules) || true
 
       # Paso 9: Compilación Completa para Actualizar la Lista
       - name: 9. Full Build to Get Final Module List
