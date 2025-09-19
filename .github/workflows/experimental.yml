@@ -59,18 +59,12 @@ jobs:
           KCFLAGS="${KCFLAGS} -D__ANDROID_COMMON_KERNEL__"
           EXTRA_CMDS=''
           STOP_SHIP_TRACEPRINTK=1
-
-          MAKE_GOALS="${MAKE_GOALS}
-          Image.lz4
-          "
+          
           ABI_DEFINITION=android/abi_gki_aarch64.xml
           KMI_SYMBOL_LIST=android/abi_gki_aarch64
           ADDITIONAL_KMI_SYMBOL_LISTS="
           android/abi_gki_aarch64_unisoc
           android/abi_gki_aarch64_transsion
-          "
-          FILES="${FILES}
-          arch/arm64/boot/Image.lz4
           "
           
           # Usar nuestra configuración, no la de GKI.
@@ -89,11 +83,36 @@ jobs:
           LTO=thin
           EOF
           
-          # 2. Le entregamos la hoja de pedido directamente al script.
-          # (BUILD_CONFIG=common/build.config.unisoc build/build.sh oldconfig) || true
-          (GKI_DEFCONFIG_FRAGMENT=gki.fragment BUILD_CONFIG=common/build.config.unisoc build/build.sh modules_install) || true
+          ln -s common/build.config.unisoc build.config
           
-          GKI_DEFCONFIG_FRAGMENT=gki.fragment BUILD_CONFIG=common/build.config.unisoc build/build.sh
+           # 1. Cargamos el entorno del compilador (Clang, PATH, etc.)
+          source build/_setup_env.sh
+          
+          # 2. Copiamos NUESTRA defconfig al directorio de salida y la renombramos a .config
+          #    Este es el paso clave que faltaba y que resuelve el error.
+          cp common/arch/arm64/configs/stock_defconfig out/android12-5.4/.config
+          
+          # 3. Ejecutamos 'make olddefconfig' para que el sistema valide y complete
+          #    nuestra configuración, preparándola para la compilación.
+          (make -C common O=../out/android12-5.4 olddefconfig) || true
+
+          # --- PARTE B: Compilar el Kernel Principal ---
+          echo "### Compilando el kernel principal... ###"
+
+          # Ejecutamos 'make' con los objetivos que necesitamos (Image.lz4 y módulos estándar)
+          make -C common O=../out/android12-5.4 Image modules
+
+          # --- PARTE C: Compilar el Módulo de KernelSU ---
+          echo "### Compilando el módulo de KernelSU por separado... ###"
+          
+          # Ya no necesitamos 'modules_prepare' porque la compilación principal ya lo hizo todo.
+          # Compilamos directamente el módulo de KernelSU.
+          make -C common O=../out/android12-5.4 M=KernelSU-Next/kernel modules
+          
+          # --- PARTE D: Mover el artefacto ---
+          echo "Buscando y moviendo kernelsu.ko..."
+          (cp $(find out/android12-5.4/ -name "kernelsu.ko") out/android12-5.4/) || true
+          echo "kernelsu.ko listo para ser empaquetado."
 
 
       # Paso 7: Subir los artefactos
@@ -101,5 +120,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Unisoc-GKI-Next-Build
-          path: gki_kernel/out/android12-5.4/dist/
+          path: gki_kernel/out/android12-5.4/
           
