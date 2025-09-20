@@ -20,10 +20,8 @@ jobs:
       - name: 3. Download Kernel Source
         run: |
           mkdir gki_kernel && cd gki_kernel
-          repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4-lts --no-repo-verify
-          
+          repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4 --no-repo-verify --depth 1
           repo sync -c --no-tags --no-clone-bundle -j$(nproc --all)
-
       # Paso 4: Integrar KernelSU-Next
       - name: 4. Integrate KernelSU-Next
         run: |
@@ -32,73 +30,31 @@ jobs:
           git clone https://github.com/KernelSU-Next/KernelSU-Next.git
           # 2. Ejecutamos el script de instalación
           bash KernelSU-Next/kernel/setup.sh
-
       # Paso 5: Crear Fragmento de Configuración GKI-Nativo
       - name: 5. Create GKI-Native Config Fragment
         run: |
           cd gki_kernel
-          echo "CONFIG_KSU=m" > gki.fragment
-          echo "CONFIG_PROC_FS=y" >> gki.fragment
-          echo "# CONFIG_CPU_IDLE is not set" >> gki.fragment
-          echo "# CONFIG_CPU_IDLE_GOV_MENU is not set" >> gki.fragment
-          echo "# CONFIG_ARM_CPUIDLE is not set" >> gki.fragment
-          echo "CONFIG_ARCH_SPRD=y" >> gki.fragment
-          echo "# CONFIG_ARM_PSCI_CPUIDLE is not set" >> gki.fragment
-          echo "CONFIG_PM_GENERIC_DOMAINS_SLEEP=y" >> gki.fragment
-          echo "CONFIG_DRM=y" >> gki.fragment
-          echo "CONFIG_DRM_KMS_HELPER=y" >> gki.fragment
-          echo "CONFIG_DRM_MIPI_DSI=y" >> gki.fragment
-          echo "CONFIG_DRM_BRIDGE=y" >> gki.fragment
-          echo "CONFIG_DRM_PANEL_BRIDGE=y" >> gki.fragment
-          echo "CONFIG_DRM_PANEL_SIMPLE=y" >> gki.fragment
-          echo 'CONFIG_CMDLINE="processor.max_cstate=1 cpuidle.off=1"' >> gki_debug.fragment
+          echo "CONFIG_KSU=m" >> common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_ARCH_SPRD=y" >> common/arch/arm64/configs/gki_defconfig
+          echo 'CONFIG_CMDLINE="processor.max_cstate=1 cpuidle.off=1"' >> common/arch/arm64/configs/gki_defconfig
 
           cp common/android/abi_gki_aarch64_unisoc common/android/abi_gki_aarch64
           cat common/android/abi_gki_aarch64_transsion >> common/android/abi_gki_aarch64
-          curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/ums9230-1h10-go.dts > common/arch/arm64/boot/dts/sprd/ums9230-1h10-go.dts
-          
-          sed -i '/sp9860g-1h10.dtb/a \\t\t\tums9230-1h10-go.dtb \\' common/arch/arm64/boot/dts/sprd/Makefile
-          echo "DTS Makefile updated to include ums9230-1h10-go.dtb."
           
       # Paso 6: Personalizar Versión del Kernel
       - name: 6. Set Custom Kernel Version
         run: |
           sed -i 's/^echo "\$res"$/echo "-Max-X6525-GKI-Next"/' gki_kernel/common/scripts/setlocalversion
           echo "Kernel version hardcoded to -Max-X6525-GKI-Next"
-
       # Paso 7: Compilar el Kernel
       - name: 7. Build Kernel
         run: |
           cd gki_kernel
           while true; do echo "Build in progress - $(date)"; sleep 300; done &
-          GKI_DEFCONFIG_FRAGMENT=gki.fragment LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
-
-      - name: 7.1. Build and Place KernelSU LKM
-        run: |
-          cd gki_kernel
-          
-          echo "### Compilando el módulo de KernelSU por separado... ###"
-
-          # 1. Cargamos el mismo entorno que usa build.sh para tener el compilador correcto (Clang).
-          ln -s common/build.config.gki.aarch64 build.config
-          source build/_setup_env.sh
-          
-          # 2. PREPARAMOS el directorio de salida para la compilación de módulos externos.
-          #    Esto crea los enlaces y cabeceras necesarios que faltaban en el intento anterior.
-          make -C common O=../out/android12-5.4 modules_prepare
-
-          # 3. AHORA SÍ, compilamos el módulo. El entorno ya está listo.
-          make -C common O=../out/android12-5.4 M=KernelSU-Next/kernel modules
-
-          # 4. Copiamos el .ko resultante a la raíz de la salida para que el siguiente paso lo encuentre.
-          echo "Buscando y moviendo kernelsu.ko..."
-          cp $(find out/android12-5.4/ -name "kernelsu.ko") out/android12-5.4/
-          echo "kernelsu.ko listo para ser empaquetado."
-          
+          LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 KMI_ENFORCED=0 build/build.sh
       # Paso 8: Subir el artefacto de compilación
       - name: 8. Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: GKI-Build-Artifacts-5.4-Max-X6525-Next
           path: gki_kernel/out/android12-5.4/dist/
-          
