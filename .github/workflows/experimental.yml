@@ -16,15 +16,13 @@ jobs:
       - name: 3. Download Kernel Source
         run: |
           mkdir gki_kernel && cd gki_kernel
-          repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4 --depth 1
+          repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4-lts --depth 1
           repo sync -c --no-tags --no-clone-bundle -j$(nproc --all)
       - name: 4. Integrate KernelSU-Next
         run: |
           cd gki_kernel/common
           git clone https://github.com/KernelSU-Next/KernelSU-Next.git KernelSU
-          sed -i '/path_umount/d' KernelSU/kernel/setup.sh
           bash KernelSU/kernel/setup.sh
-
       - name: 5. Prepare Config Files
         run: |
           
@@ -41,7 +39,6 @@ jobs:
           
           cat <<EOF > common/build.config.unisoc
           . /home/runner/work/gki-X6525/gki-X6525/gki_kernel/common/build.config.aarch64
-
           BRANCH=android12-5.4
           KMI_GENERATION=9
           LLVM=1
@@ -82,21 +79,18 @@ jobs:
           cp common/arch/arm64/configs/stock_defconfig out/android12-5.4/.config
           
           common/scripts/kconfig/merge_config.sh -m common/arch/arm64/configs/gki_defconfig common/arch/arm64/configs/stock_defconfig
-
           mv .config out/android12-5.4/.config
           
           while true; do echo "Build in progress - $(date)"; sleep 300; done &
           export LTO=thin
-
           (make -C common O=../out/android12-5.4 LTO=thin olddefconfig) || true
-          (make -C common O=../out/android12-5.4 modules_prepare) || true
-          
-          make -C common O=../out/android12-5.4 LTO=thin M=KernelSU/kernel modules
-
+          echo "### Compilando el kernel principal... ###"
+          make -C common O=../out/android12-5.4 LTO=thin Image modules
       # Paso 7: Subir los artefactos
       - name: 7. Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Unisoc-GKI-Next-Build
           path: |
+            gki_kernel/out/android12-5.4/**/Image
             gki_kernel/out/android12-5.4/**/*.ko
