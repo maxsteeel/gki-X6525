@@ -1,0 +1,16 @@
+--- a/kernel/module.c
++++ b/kernel/module.c
+@@ -3701,8 +3701,9 @@
+ 
+ static bool bad_version(const struct load_info *info, const char *symname)
+ {
+-	pr_warn("%s: disagrees about version of symbol %s\n",
+-	       info->name, symname);
+-	return 0;
++	pr_warn("%s: disagrees about version of symbol %s, but ignore...\n",
++	       info->name, symname);
++	return 1;
+ }
+ 
+ static int check_version(const struct load_info *info,
+ 
