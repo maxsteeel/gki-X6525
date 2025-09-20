@@ -33,10 +33,10 @@ jobs:
           
           curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/config_stock.txt > gki_kernel/common/arch/arm64/configs/stock_defconfig
           
-          curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/ums9230-1h10-go.dts > gki_kernel/common/arch/arm64/boot/dts/sprd/ums9230-1h10-go.dts
+          # curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/ums9230-1h10-go.dts > gki_kernel/common/arch/arm64/boot/dts/sprd/ums9230-1h10-go.dts
           
-          sed -i '/sp9860g-1h10.dtb/a \\t\t\tums9230-1h10-go.dtb \\' gki_kernel/common/arch/arm64/boot/dts/sprd/Makefile
-          echo "DTS Makefile updated to include ums9230-1h10-go.dtb."
+          # sed -i '/sp9860g-1h10.dtb/a \\t\t\tums9230-1h10-go.dtb \\' gki_kernel/common/arch/arm64/boot/dts/sprd/Makefile
+          # echo "DTS Makefile updated to include ums9230-1h10-go.dtb."
           
 
       - name: 6. Build The Kernel
@@ -65,7 +65,7 @@ jobs:
           
           DEFCONFIG=stock_defconfig
           
-          KMI_ENFORCED=0
+          KMI_ENFORCED=1
           TRIM_NONLISTED_KMI=0
           KMI_SYMBOL_LIST_STRICT_MODE=0
           IN_KERNEL_MODULES=1
