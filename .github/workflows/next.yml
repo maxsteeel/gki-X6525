@@ -39,8 +39,11 @@ jobs:
           cp kernel_patches/next/susfs_fix_patches/v1.5.9/fix_kernel_compat.c.patch KernelSU-Next
           cp kernel_patches/next/susfs_fix_patches/v1.5.9/fix_sucompat.c.patch KernelSU-Next
           cd common
-          git apply next_hooks.patch
+          echo "Patch #1:"
+          (git apply next_hooks.patch) || true
+          echo "Patch #2:"
           (git apply scope_min_manual_hooks_v1.4.patch) || true
+          echo "Patch #3:"
           (git apply syscall_hooks.patch) || true
           
           cd ..
@@ -61,10 +64,10 @@ jobs:
           # 3. Aplicamos el parche a KernelSU, permitiendo el fallo conocido
           cd gki_kernel/KernelSU-Next
           (patch -p1 < 10_enable_susfs_for_ksu.patch) || true
-          git apply fix_core_hook.c.patch
-          git apply fix_kernel_compat.c.patch
-          git apply fix_sucompat.c.patch
-          patch -p1 < 50_add_susfs_in_kernel-5.4.patch
+          (git apply fix_core_hook.c.patch) || true
+          (git apply fix_kernel_compat.c.patch) || true
+          (git apply fix_sucompat.c.patch) || true
+          (patch -p1 < 50_add_susfs_in_kernel-5.4.patch) || true
           cd ../..
           
           
@@ -80,8 +83,8 @@ jobs:
       # Paso 7: Personalizar Versión del Kernel
       - name: 7. Set Custom Kernel Version
         run: |
-          sed -i 's/^echo "\$res"$/echo "-Max-X6525-GKI-Next"/' gki_kernel/common/scripts/setlocalversion
-          echo "Kernel version hardcoded to -Max-X6525-GKI-Next"
+          sed -i 's/^echo "\$res"$/echo "-lts-Max-X6525-GKI-Next"/' gki_kernel/common/scripts/setlocalversion
+          echo "Kernel version hardcoded to -lts-Max-X6525-GKI-Next"
       # Paso 8: Compilar el Kernel
       - name: 8. Build Kernel
         run: |
@@ -90,7 +93,7 @@ jobs:
           
           cp common/arch/arm64/configs/stock_defconfig out/android12-5.4/.config
           
-          common/scripts/kconfig/merge_config.sh -m common/arch/arm64/configs/gki_defconfig common/arch/arm64/configs/stock_defconfig
+          common/scripts/kconfig/merge_config.sh -m common/arch/arm64/configs/gki_defconfig common/arch/arm64/configs/fragment_defconfig
           mv .config out/android12-5.4/.config
           while true; do echo "Build in progress - $(date)"; sleep 300; done &
           
