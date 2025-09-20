@@ -92,7 +92,7 @@ jobs:
 
           echo "### Compilando el kernel principal... ###"
 
-          make -C common O=../out/android12-5.4 LTO=thin Image modules
+          make -C common O=../out/android12-5.4 LTO=thin M=KernelSU/kernel modules
 
       # Paso 7: Subir los artefactos
       - name: 7. Upload Build Artifacts
@@ -100,6 +100,4 @@ jobs:
         with:
           name: Unisoc-GKI-Next-Build
           path: |
-            gki_kernel/out/android12-5.4/**/Image
             gki_kernel/out/android12-5.4/**/*.ko
-
