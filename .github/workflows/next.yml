@@ -42,9 +42,7 @@ jobs:
           git apply next_hooks.patch
           git apply scope_min_manual_hooks_v1.4.patch
           git apply syscall_hooks.patch
-          git apply fix_core_hook.c.patch
-          git apply fix_kernel_compat.c.patch
-          git apply fix_sucompat.c.patch
+          
           cd ..
           bash KernelSU-Next/kernel/setup.sh
       # --- PASO REINTEGRADO Y CORREGIDO ---
@@ -62,7 +60,11 @@ jobs:
           
           # 3. Aplicamos el parche a KernelSU, permitiendo el fallo conocido
           cd gki_kernel/KernelSU-Next
-          patch -p1 < 10_enable_susfs_for_ksu.patch
+          (patch -p1 < 10_enable_susfs_for_ksu.patch) || true
+          git apply fix_core_hook.c.patch
+          git apply fix_kernel_compat.c.patch
+          git apply fix_sucompat.c.patch
+          patch -p1 < 50_add_susfs_in_kernel-5.4.patch
           cd ../..
           
           
