@@ -92,9 +92,19 @@ jobs:
           
           cp common/arch/arm64/configs/stock_defconfig out/android12-5.4/.config
 
+          # 3. Usamos el script 'merge_config.sh' para fusionar la configuración
+          #    base de GKI con tu configuración de dispositivo (stock_defconfig).
+          #    Esto crea un archivo .config que contiene la base completa de GKI
+          #    más todos tus ajustes específicos.
+          
+          common/scripts/kconfig/merge_config.sh -m common/arch/arm64/configs/gki_defconfig common/arch/arm64/configs/stock_defconfig
+
+          # 4. El resultado de la fusión es un nuevo .config. Lo movemos al directorio de salida.
+          mv .config out/android12-5.4/.config
+          
           while true; do echo "Build in progress - $(date)"; sleep 300; done &
           export LTO=thin
-          # 3. Ejecutamos 'make olddefconfig' para que el sistema valide y complete
+          # 5. Ejecutamos 'make olddefconfig' para que el sistema valide y complete
           #    nuestra configuración, preparándola para la compilación.
           (make -C common O=../out/android12-5.4 LTO=thin olddefconfig) || true
 
