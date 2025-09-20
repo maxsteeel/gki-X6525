@@ -30,7 +30,13 @@ jobs:
           cd gki_kernel
           # 1. Usamos el repositorio CORRECTO de KernelSU-Next y lo clonamos en una carpeta llamada 'KernelSU'
           git clone https://github.com/KernelSU-Next/KernelSU-Next.git
-          # 2. Ejecutamos el script de instalación
+          
+          git clone https://github.com/WildKernels/kernel_patches.git 
+          cd KernelSU-Next
+          git apply ../kernel_patches/next_hooks.patch
+          git apply ../kernel_patches/scope_min_manual_hooks_v1.4.patch
+          git apply ../kernel_patches/syscall_hooks.patch
+          cd ..
           bash KernelSU-Next/kernel/setup.sh
       # --- PASO REINTEGRADO Y CORREGIDO ---
       # Paso 5: Integrar SUSFS para KernelSU-Next
