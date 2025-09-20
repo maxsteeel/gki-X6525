@@ -22,9 +22,12 @@ jobs:
       - name: 4. Integrate KernelSU-Next
         run: |
           cd gki_kernel/common
-          # git clone https://github.com/KernelSU-Next/KernelSU-Next.git KernelSU
-          # bash KernelSU/kernel/setup.sh
-          echo "KernelSU-Next skipped"
+          git clone https://github.com/tiann/KernelSU.git
+          cd KernelSU
+          git checkout v0.9.5 
+          cd ..
+          bash KernelSU/kernel/setup.sh v0.9.5
+          echo "KernelSU-Next replaced with KernelSU"
 
       # Paso 5: Preparar Archivos de Configuración (Sin cambios)
       - name: 5. Prepare Config Files
