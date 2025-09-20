@@ -49,14 +49,7 @@ jobs:
           cd gki_kernel/KernelSU-Next
           patch -p1 < 10_enable_susfs_for_ksu.patch
           cd ../..
-          # 4. CORRECCIÓN MANUAL: Aplicamos el cambio del Hunk que falla con 'sed'
-          # sed -i '/if (!is_ksud_present())/a \ \ \ \ ksu_load_allow_rules(cred);' gki_kernel/KernelSU-Next/kernel/selinux/selinux.c
           
-          # 5. Aplicamos el parche principal al kernel
-          # cd gki_kernel/common
-          # patch -p1 < 50_add_susfs_in_kernel-5.4.patch
-          # cd ../..
-          echo "SUSFS patches applied successfully."
           
       # Paso 6: Crear Fragmento de Configuración GKI-Nativo
       - name: 6. Create GKI-Native Config Fragment
