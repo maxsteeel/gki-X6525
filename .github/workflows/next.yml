@@ -32,12 +32,12 @@ jobs:
           git clone https://github.com/KernelSU-Next/KernelSU-Next.git
           
           git clone https://github.com/WildKernels/kernel_patches.git 
-          cp kernel_patches/next_hooks.patch KernelSU-Next
-          cp kernel_patches/scope_min_manual_hooks_v1.4.patch KernelSU-Next
-          cp kernel_patches/syscall_hooks.patch KernelSU-Next
-          cp kernel_patches/susfs_fix_patches/v1.5.9/fix_core_hook.c.patch KernelSU-Next
-          cp kernel_patches/susfs_fix_patches/v1.5.9/fix_kernel_compat.c.patch KernelSU-Next
-          cp kernel_patches/susfs_fix_patches/v1.5.9/fix_sucompat.c.patch KernelSU-Next
+          cp kernel_patches/next/next_hooks.patch KernelSU-Next
+          cp kernel_patches/next/scope_min_manual_hooks_v1.4.patch KernelSU-Next
+          cp kernel_patches/next/syscall_hooks.patch KernelSU-Next
+          cp kernel_patches/next/susfs_fix_patches/v1.5.9/fix_core_hook.c.patch KernelSU-Next
+          cp kernel_patches/next/susfs_fix_patches/v1.5.9/fix_kernel_compat.c.patch KernelSU-Next
+          cp kernel_patches/next/susfs_fix_patches/v1.5.9/fix_sucompat.c.patch KernelSU-Next
           cd KernelSU-Next
           git apply next_hooks.patch
           git apply scope_min_manual_hooks_v1.4.patch
