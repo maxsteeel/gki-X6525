@@ -63,10 +63,13 @@ jobs:
           
           # 3. Aplicamos el parche a KernelSU, permitiendo el fallo conocido
           cd gki_kernel/KernelSU-Next
-          (patch -p1 < 10_enable_susfs_for_ksu.patch) || true
           (git apply fix_core_hook.c.patch) || true
           (git apply fix_kernel_compat.c.patch) || true
           (git apply fix_sucompat.c.patch) || true
+          
+          (patch -p1 < 10_enable_susfs_for_ksu.patch) || true
+          
+          cd ../common
           (patch -p1 < 50_add_susfs_in_kernel-5.4.patch) || true
           cd ../..
           
@@ -91,7 +94,7 @@ jobs:
           cd gki_kernel
           mkdir out && cd out && mkdir android12-5.4 && cd ..
           
-          cp common/arch/arm64/configs/stock_defconfig out/android12-5.4/.config
+          cp common/arch/arm64/configs/fragment_defconfig out/android12-5.4/.config
           
           common/scripts/kconfig/merge_config.sh -m common/arch/arm64/configs/gki_defconfig common/arch/arm64/configs/fragment_defconfig
           mv .config out/android12-5.4/.config
