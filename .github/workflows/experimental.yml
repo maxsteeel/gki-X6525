@@ -70,6 +70,8 @@ jobs:
           KMI_ENFORCED=0
           TRIM_NONLISTED_KMI=0
           KMI_SYMBOL_LIST_STRICT_MODE=0
+          IN_KERNEL_MODULES=1
+          DO_NOT_STRIP_MODULES=1
           
           # Usar nuestra lista de módulos como la verdad absoluta.
           MODULES_ORDER=android/gki_aarch64_modules
