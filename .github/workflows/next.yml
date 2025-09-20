@@ -48,32 +48,7 @@ jobs:
           
           cd ..
           bash KernelSU-Next/kernel/setup.sh
-      # --- PASO REINTEGRADO Y CORREGIDO ---
-      # Paso 5: Integrar SUSFS para KernelSU-Next
-      - name: 5. Integrate SUSFS for KernelSU-Next
-        run: |
-          # 1. Clonamos el repositorio de susfs
-          git clone --depth=1 --branch kernel-5.4 https://gitlab.com/simonpunk/susfs4ksu.git
-          
-          # 2. Copiamos los parches y archivos a sus ubicaciones
-          cp susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch gki_kernel/KernelSU-Next/
-          cp susfs4ksu/kernel_patches/50_add_susfs_in_kernel-5.4.patch gki_kernel/common/
-          cp -r susfs4ksu/kernel_patches/fs/* gki_kernel/common/fs/
-          cp -r susfs4ksu/kernel_patches/include/linux/* gki_kernel/common/include/linux/
-          
-          # 3. Aplicamos el parche a KernelSU, permitiendo el fallo conocido
-          cd gki_kernel/KernelSU-Next
-          (git apply fix_core_hook.c.patch) || true
-          (git apply fix_kernel_compat.c.patch) || true
-          (git apply fix_sucompat.c.patch) || true
-          
-          (patch -p1 < 10_enable_susfs_for_ksu.patch) || true
-          
-          cd ../common
-          (patch -p1 < 50_add_susfs_in_kernel-5.4.patch) || true
-          cd ../..
-          
-          
+  
       # Paso 6: Crear Fragmento de Configuración GKI-Nativo
       - name: 6. Create GKI-Native Config
         run: |
