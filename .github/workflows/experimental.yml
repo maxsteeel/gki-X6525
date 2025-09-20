@@ -16,7 +16,7 @@ jobs:
       - name: 3. Download Kernel Source
         run: |
           mkdir gki_kernel && cd gki_kernel
-          repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4
+          repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4 --depth 1
           repo sync -c --no-tags --no-clone-bundle -j$(nproc --all)
       - name: 4. Integrate KernelSU-Next
         run: |
@@ -89,9 +89,8 @@ jobs:
           export LTO=thin
 
           (make -C common O=../out/android12-5.4 LTO=thin olddefconfig) || true
-
-          echo "### Compilando el kernel principal... ###"
-
+          (make -C common O=../out/android12-5.4 modules_prepare) || true
+          
           make -C common O=../out/android12-5.4 LTO=thin M=KernelSU/kernel modules
 
       # Paso 7: Subir los artefactos
