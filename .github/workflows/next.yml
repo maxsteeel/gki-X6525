@@ -40,8 +40,8 @@ jobs:
           cp kernel_patches/next/susfs_fix_patches/v1.5.9/fix_sucompat.c.patch KernelSU-Next
           cd common
           git apply next_hooks.patch
-          git apply scope_min_manual_hooks_v1.4.patch
-          git apply syscall_hooks.patch
+          (git apply scope_min_manual_hooks_v1.4.patch) || true
+          (git apply syscall_hooks.patch) || true
           
           cd ..
           bash KernelSU-Next/kernel/setup.sh
