@@ -20,9 +20,9 @@ jobs:
       - name: 3. Download Kernel Source
         run: |
           mkdir gki_kernel && cd gki_kernel
-          repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4 --no-repo-verify
-          sed -i 's|path="common" name="kernel/common" revision="android12-5.4"|path="common" name="kernel/common" revision="android12-5.4.210_r00"|' .repo/manifest.xml
-          repo sync -c --no-clone-bundle -j$(nproc --all)
+          repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4-lts --no-repo-verify --depth 1
+          
+          repo sync -c --no-tags --no-clone-bundle -j$(nproc --all)
       # --- PASO MODIFICADO Y CORREGIDO ---
       # Paso 4: Integrar KernelSU-Next
       - name: 4. Integrate KernelSU-Next
@@ -61,12 +61,11 @@ jobs:
           
           
       # Paso 6: Crear Fragmento de Configuración GKI-Nativo
-      - name: 6. Create GKI-Native Config Fragment
+      - name: 6. Create GKI-Native Config
         run: |
           cd gki_kernel
-          echo "CONFIG_KSU=y" > gki.fragment
-          echo "CONFIG_KSU_SUSFS=y" >> gki.fragment
-          echo "CONFIG_PROC_FS=y" >> gki.fragment
+          
+          curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/gki_defconfig.txt >> common/arch/arm64/configs/fragment_defconfig
           cp common/android/abi_gki_aarch64_unisoc common/android/abi_gki_aarch64
           cat common/android/abi_gki_aarch64_transsion >> common/android/abi_gki_aarch64
           
@@ -79,8 +78,17 @@ jobs:
       - name: 8. Build Kernel
         run: |
           cd gki_kernel
+          mkdir out && cd out && mkdir android12-5.4 && cd ..
+          
+          cp common/arch/arm64/configs/stock_defconfig out/android12-5.4/.config
+          
+          common/scripts/kconfig/merge_config.sh -m common/arch/arm64/configs/gki_defconfig common/arch/arm64/configs/stock_defconfig
+          mv .config out/android12-5.4/.config
           while true; do echo "Build in progress - $(date)"; sleep 300; done &
-          GKI_DEFCONFIG_FRAGMENT=gki.fragment LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
+          
+          (LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh olddefconfig) || true
+          
+          LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
       # Paso 9: Subir el artefacto de compilación
       - name: 9. Upload Build Artifacts
         uses: actions/upload-artifact@v4
