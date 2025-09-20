@@ -1,5 +1,5 @@
 # Nombre del workflow
-name: (EXPERIMENTAL) Build Unisoc GKI with Full Stock Config
+name: (EXPERIMENTAL) Build Unisoc GKI with Full Stock Config and KernelSU-Next
 
 on:
   workflow_dispatch:
@@ -9,7 +9,6 @@ jobs:
     name: Build Kernel
     runs-on: ubuntu-22.04
     steps:
-      # Pasos 1-4 (Sin cambios)
       - name: 1. Install Dependencies
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends repo git bc build-essential curl g++-multilib gcc-multilib gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev libelf-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
       - name: 2. Setup Repo Tool
@@ -23,9 +22,9 @@ jobs:
         run: |
           cd gki_kernel/common
           git clone https://github.com/KernelSU-Next/KernelSU-Next.git KernelSU
+          sed -i '/path_umount/d' KernelSU/kernel/setup.sh
           bash KernelSU/kernel/setup.sh
 
-      # Paso 5: Preparar Archivos de Configuración (Sin cambios)
       - name: 5. Prepare Config Files
         run: |
           
@@ -36,13 +35,10 @@ jobs:
           sed -i '/sp9860g-1h10.dtb/a \\t\t\tums9230-1h10-go.dtb \\' gki_kernel/common/arch/arm64/boot/dts/sprd/Makefile
           echo "DTS Makefile updated to include ums9230-1h10-go.dtb."
           
-
-      # --- PASO 6: CORREGIDO Y SIMPLIFICADO ---
       - name: 6. Build The Kernel
         run: |
           cd gki_kernel
           
-          # 1. Creamos nuestra "hoja de pedido" con todas las instrucciones.
           cat <<EOF > common/build.config.unisoc
           . /home/runner/work/gki-X6525/gki-X6525/gki_kernel/common/build.config.aarch64
 
@@ -63,74 +59,47 @@ jobs:
           android/abi_gki_aarch64_transsion
           "
           
-          # Usar nuestra configuración, no la de GKI.
           DEFCONFIG=stock_defconfig
           
-          # Desactivar TODAS las verificaciones de KMI.
           KMI_ENFORCED=0
           TRIM_NONLISTED_KMI=0
           KMI_SYMBOL_LIST_STRICT_MODE=0
           IN_KERNEL_MODULES=1
           DO_NOT_STRIP_MODULES=1
           
-          # Usar nuestra lista de módulos como la verdad absoluta.
           MODULES_ORDER=android/gki_aarch64_modules
           KERNEL_CMDLINE="cpuidle.off=1"
           
-          # Opciones de optimización.
           LTO=thin
           EOF
           
           ln -s common/build.config.unisoc build.config
           
-           # 1. Cargamos el entorno del compilador (Clang, PATH, etc.)
           source build/_setup_env.sh
           
-          # 2. Copiamos NUESTRA defconfig al directorio de salida y la renombramos a .config
-          #    Este es el paso clave que faltaba y que resuelve el error.
           mkdir out && cd out && mkdir android12-5.4 && cd ..
           
           cp common/arch/arm64/configs/stock_defconfig out/android12-5.4/.config
-
-          # 3. Usamos el script 'merge_config.sh' para fusionar la configuración
-          #    base de GKI con tu configuración de dispositivo (stock_defconfig).
-          #    Esto crea un archivo .config que contiene la base completa de GKI
-          #    más todos tus ajustes específicos.
           
           common/scripts/kconfig/merge_config.sh -m common/arch/arm64/configs/gki_defconfig common/arch/arm64/configs/stock_defconfig
 
-          # 4. El resultado de la fusión es un nuevo .config. Lo movemos al directorio de salida.
           mv .config out/android12-5.4/.config
           
           while true; do echo "Build in progress - $(date)"; sleep 300; done &
           export LTO=thin
-          # 5. Ejecutamos 'make olddefconfig' para que el sistema valide y complete
-          #    nuestra configuración, preparándola para la compilación.
+
           (make -C common O=../out/android12-5.4 LTO=thin olddefconfig) || true
 
-          # --- PARTE B: Compilar el Kernel Principal ---
           echo "### Compilando el kernel principal... ###"
 
-          # Ejecutamos 'make' con los objetivos que necesitamos (Image.lz4 y módulos estándar)
           make -C common O=../out/android12-5.4 LTO=thin Image modules
-
-          # --- PARTE C: Compilar el Módulo de KernelSU ---
-          # echo "### Compilando el módulo de KernelSU por separado... ###"
-          
-          # Ya no necesitamos 'modules_prepare' porque la compilación principal ya lo hizo todo.
-          # Compilamos directamente el módulo de KernelSU.
-          # make -C common O=../out/android12-5.4 M=KernelSU-Next/kernel modules
-          
-          # --- PARTE D: Mover el artefacto ---
-          # echo "Buscando y moviendo kernelsu.ko..."
-          # (cp $(find out/android12-5.4/ -name "kernelsu.ko") out/android12-5.4/) || true
-          # echo "kernelsu.ko listo para ser empaquetado."
-
 
       # Paso 7: Subir los artefactos
       - name: 7. Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Unisoc-GKI-Next-Build
-          path: gki_kernel/out/android12-5.4/
-          
+          path: |
+            gki_kernel/out/android12-5.4/**/Image
+            gki_kernel/out/android12-5.4/**/*.ko
+
