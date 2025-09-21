@@ -76,9 +76,9 @@ jobs:
           mv .config out/android12-5.4/.config
           while true; do echo "Build in progress - $(date)"; sleep 300; done &
           
-          (LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh olddefconfig) || true
+          (LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 DEFCONFIG=fragment_defconfig build/build.sh olddefconfig) || true
           
-          LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
+          LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 DEFCONFIG=fragment_defconfig build/build.sh
       # Paso 9: Subir el artefacto de compilación
       - name: 9. Upload Build Artifacts
         uses: actions/upload-artifact@v4
