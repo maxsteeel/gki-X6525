@@ -90,14 +90,14 @@ jobs:
           
           DEFCONFIG=fragment_defconfig
           
-          KMI_ENFORCED=0
+          KMI_ENFORCED=1
           TRIM_NONLISTED_KMI=0
           KMI_SYMBOL_LIST_STRICT_MODE=0
           IN_KERNEL_MODULES=1
           DO_NOT_STRIP_MODULES=1
           
           MODULES_ORDER=android/gki_aarch64_modules
-          KERNEL_CMDLINE="cpuidle.off=1"
+          KERNEL_CMDLINE=""
           
           LTO=thin
           EOF
