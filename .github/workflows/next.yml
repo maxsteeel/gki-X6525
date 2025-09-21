@@ -30,21 +30,10 @@ jobs:
           cd gki_kernel
           # 1. Usamos el repositorio CORRECTO de KernelSU-Next y lo clonamos en una carpeta llamada 'KernelSU'
           git clone https://github.com/KernelSU-Next/KernelSU-Next.git
-          
-          git clone https://github.com/WildKernels/kernel_patches.git 
-          cp kernel_patches/next/next_hooks.patch common
-          cp kernel_patches/next/scope_min_manual_hooks_v1.4.patch common
-          cp kernel_patches/next/syscall_hooks.patch common
-          cp kernel_patches/next/susfs_fix_patches/v1.5.9/fix_core_hook.c.patch KernelSU-Next
-          cp kernel_patches/next/susfs_fix_patches/v1.5.9/fix_kernel_compat.c.patch KernelSU-Next
-          cp kernel_patches/next/susfs_fix_patches/v1.5.9/fix_sucompat.c.patch KernelSU-Next
+
+          curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/forcemodulesload.patch > common/force_modules_load.patch
           cd common
-          echo "Patch #1:"
-          (git apply next_hooks.patch) || true
-          echo "Patch #2:"
-          (git apply scope_min_manual_hooks_v1.4.patch) || true
-          echo "Patch #3:"
-          (git apply syscall_hooks.patch) || true
+          patch -p1 < force_modules_load.patch
           
           cd ..
           bash KernelSU-Next/kernel/setup.sh
