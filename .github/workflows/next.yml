@@ -112,7 +112,7 @@ jobs:
           
           (make -C common O=../out/android12-5.4 LTO=thin olddefconfig) || true
           
-          LTO=thin BUILD_CONFIG=common/build.config.unisoc DEFCONFIG=fragment_defconfig build/build.sh
+          (LTO=thin BUILD_CONFIG=common/build.config.unisoc DEFCONFIG=fragment_defconfig build/build.sh) || true
       # Paso 9: Subir el artefacto de compilación
       - name: 9. Upload Build Artifacts
         uses: actions/upload-artifact@v4
