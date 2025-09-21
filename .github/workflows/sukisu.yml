@@ -1,5 +1,5 @@
 # Nombre del workflow
-name: Build GKI Kernel with KernelSU-Next
+name: (EXPERIMENTAL) Build GKI Kernel with SukiSU Ultra
 
 # Cómo se activa este workflow
 on:
