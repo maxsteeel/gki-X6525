@@ -20,23 +20,21 @@ jobs:
       - name: 3. Download Kernel Source
         run: |
           mkdir gki_kernel && cd gki_kernel
-          repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4 --no-repo-verify
+          repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4-lts --no-repo-verify
           # sed -i 's|path="common" name="kernel/common" revision="android12-5.4"|path="common" name="kernel/common" revision="android12-5.4.210_r00"|' .repo/manifest.xml
           repo sync -c --no-tags --no-clone-bundle -j$(nproc --all)
       - name: 4. Integrate KernelSU
         run: |
           cd gki_kernel
-          git clone https://github.com/tiann/KernelSU.git
-          cd KernelSU
-          git checkout v0.9.5 
-          cd ..
-          bash KernelSU/kernel/setup.sh v0.9.5
+          git clone https://github.com/rsuntk/KernelSU -b susfs-main
+          
+          bash KernelSU/kernel/setup.sh
 
       # Paso 5: Integrar SUSFS para KernelSU (con Corrección Manual)
       - name: 5. Integrate SUSFS for KernelSU (with Patch Fix)
         run: |
           # 1. Clonamos el repositorio de susfs (sin cambios)
-          git clone --depth=1 --branch kernel-5.4 https://gitlab.com/simonpunk/susfs4ksu.git
+          git clone --branch kernel-5.4 https://gitlab.com/simonpunk/susfs4ksu.git
           
           # 2. Copiamos los parches y archivos (sin cambios)
           cp susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch gki_kernel/KernelSU/
@@ -51,34 +49,13 @@ jobs:
 
           # 4. CORRECCIÓN MANUAL: Aplicamos el cambio del Hunk #7 con 'sed'.
           #    Esto inserta la llamada a 'ksu_load_allow_rules' en el lugar correcto de selinux.c
-          sed -i '/if (!is_ksud_present())/a \ \ \ \ ksu_load_allow_rules(cred);' gki_kernel/KernelSU/kernel/selinux/selinux.c
+          # sed -i '/if (!is_ksud_present())/a \ \ \ \ ksu_load_allow_rules(cred);' gki_kernel/KernelSU/kernel/selinux/selinux.c
           
           # 5. Aplicamos el parche principal al kernel (este no debería fallar)
           cd gki_kernel/common
           patch -p1 < 50_add_susfs_in_kernel-5.4.patch
           cd ../..
-          echo "SUSFS patches applied successfully with manual fix."
-          
-          echo "Applying SUSFS stubs to fix linker errors..."
-          # Creamos un nuevo archivo C con las funciones de relleno (stubs).
-          cat <<EOF > gki_kernel/common/fs/susfs_stubs.c
-          #include <linux/types.h>
-
-          /*
-           * STUBS PARA SATISFACER AL ENLAZADOR.
-           * ESTA FUNCIONALIDAD NO HARÁ NADA.
-           */
-          bool susfs_is_current_ksu_domain(void) { return false; }
-          bool susfs_is_current_zygote_domain(void) { return false; }
-          bool susfs_is_sid_equal(int a, int b) { return a == b; }
-          void susfs_set_init_sid(int sid) { /* STUB */ }
-          void susfs_set_ksu_sid(int sid) { /* STUB */ }
-          void susfs_set_zygote_sid(int sid) { /* STUB */ }
-          EOF
-
-          # Modificamos el Makefile de /fs para que compile nuestro nuevo archivo de stubs.
-          echo 'obj-y += susfs_stubs.o' >> gki_kernel/common/fs/Makefile
-          echo "SUSFS stubs created and added to build."
+          echo "SUSFS patches applied successfully"
 
   
       # --- PASO MODIFICADO ---
@@ -115,7 +92,7 @@ jobs:
       - name: 7. Set Custom Kernel Version
         run: |
           sed -i 's/^echo "\$res"$/echo "-Max-X6525-GKI"/' gki_kernel/common/scripts/setlocalversion
-          echo "Kernel version hardcoded to -Max-X6525-GKI"
+          echo "Kernel version hardcoded to -lts-Max-X6525-GKI-KSU-SUSFS"
 
       # --- PROCESO DE COMPILACIÓN SIMPLIFICADO ---
       # Paso 8: Compilar el Kernel (Primer Intento)
