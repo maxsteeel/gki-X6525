@@ -26,7 +26,7 @@ jobs:
       - name: 4. Integrate KernelSU
         run: |
           cd gki_kernel
-          git clone https://github.com/rsuntk/KernelSU -b susfs-main
+          git clone https://github.com/rsuntk/KernelSU
           
           bash KernelSU/kernel/setup.sh susfs-main
 
