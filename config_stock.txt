@@ -1,3 +1,1350 @@
+#
+# Automatically generated file; DO NOT EDIT.
+# Linux/arm64 5.4.299 Kernel Configuration
+#
+
+#
+# General setup
+#
+
+#
+# IRQ subsystem
+#
+# end of IRQ subsystem
+
+
+#
+# Timers subsystem
+#
+# end of Timers subsystem
+
+
+#
+# CPU/Task time and stats accounting
+#
+# end of CPU/Task time and stats accounting
+
+
+#
+# RCU Subsystem
+#
+# end of RCU Subsystem
+
+
+#
+# Scheduler features
+#
+# end of Scheduler features
+
+
+#
+# Kernel Performance Events And Counters
+#
+# end of Kernel Performance Events And Counters
+
+# end of General setup
+
+
+#
+# Platform selection
+#
+# end of Platform selection
+
+#
+# Kernel Features
+#
+
+#
+# ARM errata workarounds via the alternatives framework
+#
+CONFIG_ARM64_ERRATUM_1742098=y
+CONFIG_ARM64_ERRATUM_3194386=y
+# end of ARM errata workarounds via the alternatives framework
+
+# CONFIG_HZ_250 is not set
+
+#
+# ARMv8.1 architectural features
+#
+# end of ARMv8.1 architectural features
+
+#
+# ARMv8.2 architectural features
+#
+# end of ARMv8.2 architectural features
+
+#
+# ARMv8.3 architectural features
+#
+# end of ARMv8.3 architectural features
+
+#
+# ARMv8.4 architectural features
+#
+# end of ARMv8.4 architectural features
+
+# end of Kernel Features
+
+#
+# Boot options
+#
+CONFIG_CMDLINE_FROM_BOOTLOADER=y
+# CONFIG_CMDLINE_EXTEND is not set
+# CONFIG_CMDLINE_FORCE is not set
+# end of Boot options
+
+#
+# Power management options
+#
+# end of Power management options
+
+#
+# CPU Power Management
+#
+
+#
+# CPU Idle
+#
+
+#
+# ARM CPU Idle Drivers
+#
+# end of ARM CPU Idle Drivers
+# end of CPU Idle
+
+#
+# CPU Frequency scaling
+#
+
+#
+# CPU frequency scaling drivers
+#
+# end of CPU Frequency scaling
+# end of CPU Power Management
+
+#
+# Firmware Drivers
+#
+
+#
+# EFI (Extensible Firmware Interface) Support
+#
+# end of EFI (Extensible Firmware Interface) Support
+
+
+#
+# Tegra firmware driver
+#
+# end of Tegra firmware driver
+# end of Firmware Drivers
+
+
+#
+# General architecture-dependent options
+#
+
+#
+# GCOV-based kernel profiling
+#
+# end of GCOV-based kernel profiling
+
+# end of General architecture-dependent options
+
+CONFIG_ASM_MODVERSIONS=y
+# CONFIG_MODULE_SRCVERSION_ALL is not set
+
+#
+# Partition Types
+#
+# end of Partition Types
+
+
+#
+# IO Schedulers
+#
+# end of IO Schedulers
+
+
+#
+# Executable file formats
+#
+# end of Executable file formats
+
+#
+# Memory Management options
+#
+# end of Memory Management options
+
+
+#
+# Networking options
+#
+CONFIG_INET_TABLE_PERTURB_ORDER=16
+CONFIG_TCP_CONG_CUBIC=y
+
+#
+# Core Netfilter Configuration
+#
+
+#
+# Xtables combined modules
+#
+
+#
+# Xtables targets
+#
+
+#
+# Xtables matches
+#
+# end of Core Netfilter Configuration
+
+
+#
+# IP: Netfilter Configuration
+#
+# end of IP: Netfilter Configuration
+
+#
+# IPv6: Netfilter Configuration
+#
+# end of IPv6: Netfilter Configuration
+
+
+#
+# Queueing/Scheduling
+#
+
+#
+# Classification
+#
+
+#
+# Network testing
+#
+# end of Network testing
+# end of Networking options
+
+
+#
+# CAN Device Drivers
+#
+
+#
+# CAN SPI interfaces
+#
+# end of CAN SPI interfaces
+
+#
+# CAN USB interfaces
+#
+# end of CAN USB interfaces
+
+# end of CAN Device Drivers
+
+
+#
+# Bluetooth device drivers
+#
+# end of Bluetooth device drivers
+
+
+#
+# Device Drivers
+#
+
+#
+# PCI controller drivers
+#
+
+#
+# Cadence PCIe controllers support
+#
+# end of Cadence PCIe controllers support
+
+
+#
+# DesignWare PCI Core Support
+#
+# end of DesignWare PCI Core Support
+# end of PCI controller drivers
+
+#
+# PCI Endpoint
+#
+# end of PCI Endpoint
+
+#
+# PCI switch controller drivers
+#
+# end of PCI switch controller drivers
+
+
+#
+# Generic Driver Options
+#
+
+#
+# Firmware loader
+#
+# end of Firmware loader
+
+# end of Generic Driver Options
+
+#
+# Bus devices
+#
+# end of Bus devices
+
+
+#
+# NVME Support
+#
+# end of NVME Support
+
+#
+# Misc devices
+#
+
+#
+# EEPROM support
+#
+# end of EEPROM support
+
+
+#
+# Texas Instruments shared transport line discipline
+#
+# end of Texas Instruments shared transport line discipline
+
+
+#
+# Intel MIC & related support
+#
+
+#
+# Intel MIC Bus Driver
+#
+
+#
+# SCIF Bus Driver
+#
+
+#
+# VOP Bus Driver
+#
+
+#
+# Intel MIC Host Driver
+#
+
+#
+# Intel MIC Card Driver
+#
+
+#
+# SCIF Driver
+#
+
+#
+# Intel MIC Coprocessor State Management (COSM) Drivers
+#
+
+#
+# VOP Driver
+#
+# end of Intel MIC & related support
+
+# end of Misc devices
+
+#
+# SCSI device support
+#
+
+#
+# SCSI support type (disk, tape, CD-ROM)
+#
+
+#
+# SCSI Transports
+#
+# end of SCSI Transports
+
+# CONFIG_SCSI_DPT_I2O is not set
+# end of SCSI device support
+
+
+#
+# IEEE 1394 (FireWire) support
+#
+# end of IEEE 1394 (FireWire) support
+
+
+#
+# CAIF transport drivers
+#
+
+#
+# Distributed Switch Architecture drivers
+#
+# end of Distributed Switch Architecture drivers
+
+
+#
+# MII PHY device drivers
+#
+
+#
+# Enable WiMAX (Networking options) to see the WiMAX drivers
+#
+
+#
+# Input device support
+#
+
+#
+# Userland interfaces
+#
+
+#
+# Input Device Drivers
+#
+
+#
+# Hardware I/O ports
+#
+# end of Hardware I/O ports
+# end of Input device support
+
+#
+# Character devices
+#
+
+#
+# Serial drivers
+#
+
+#
+# Non-8250 serial port support
+#
+# end of Serial drivers
+
+# end of Character devices
+
+#
+# I2C support
+#
+
+#
+# I2C Algorithms
+#
+# end of I2C Algorithms
+
+#
+# I2C Hardware Bus support
+#
+
+#
+# PC SMBus host controller drivers
+#
+
+#
+# I2C system bus drivers (mostly embedded / system-on-chip)
+#
+
+#
+# External I2C/SMBus adapter drivers
+#
+
+#
+# Other I2C/SMBus bus drivers
+#
+# end of I2C Hardware Bus support
+
+# end of I2C support
+
+
+#
+# SPI Master Controller Drivers
+#
+
+#
+# SPI Protocol Masters
+#
+
+#
+# PTP clock support
+#
+
+#
+# Enable PHYLIB and NETWORK_PHY_TIMESTAMPING to see the additional clocks.
+#
+# end of PTP clock support
+
+
+#
+# Memory mapped GPIO drivers
+#
+# end of Memory mapped GPIO drivers
+
+#
+# I2C GPIO expanders
+#
+# end of I2C GPIO expanders
+
+#
+# MFD GPIO expanders
+#
+# end of MFD GPIO expanders
+
+#
+# PCI GPIO expanders
+#
+# end of PCI GPIO expanders
+
+#
+# SPI GPIO expanders
+#
+# end of SPI GPIO expanders
+
+#
+# USB GPIO expanders
+#
+# end of USB GPIO expanders
+
+
+#
+# Watchdog Pretimeout Governors
+#
+
+#
+# Watchdog Device Drivers
+#
+
+#
+# PCI-based Watchdog Cards
+#
+
+#
+# USB-based Watchdog Cards
+#
+
+#
+# Multifunction device drivers
+#
+# end of Multifunction device drivers
+
+
+#
+# Multimedia core support
+#
+
+#
+# Media drivers
+#
+
+#
+# Webcam devices
+#
+
+#
+# Webcam, TV (analog/digital) USB devices
+#
+
+#
+# USB HDMI CEC adapters
+#
+
+#
+# Supported MMC/SDIO adapters
+#
+
+#
+# Media ancillary drivers (tuners, sensors, i2c, spi, frontends)
+#
+
+#
+# I2C Encoders, decoders, sensors and other helper chips
+#
+
+#
+# Audio decoders, processors and mixers
+#
+
+#
+# RDS decoders
+#
+
+#
+# Video decoders
+#
+
+#
+# Video and audio decoders
+#
+
+#
+# Video encoders
+#
+
+#
+# Camera sensor devices
+#
+
+#
+# Lens drivers
+#
+
+#
+# Flash devices
+#
+
+#
+# Video improvement chips
+#
+
+#
+# Audio/Video compression chips
+#
+
+#
+# SDR tuner chips
+#
+
+#
+# Miscellaneous helper chips
+#
+# end of I2C Encoders, decoders, sensors and other helper chips
+
+#
+# SPI helper chips
+#
+# end of SPI helper chips
+
+#
+# Media SPI Adapters
+#
+# end of Media SPI Adapters
+
+#
+# Customise DVB Frontends
+#
+
+#
+# Tools to develop new frontends
+#
+# end of Customise DVB Frontends
+
+#
+# Graphics support
+#
+
+#
+# I2C encoder or helper chips
+#
+# end of I2C encoder or helper chips
+
+#
+# ARM devices
+#
+# end of ARM devices
+
+
+#
+# ACP (Audio CoProcessor) Configuration
+#
+# end of ACP (Audio CoProcessor) Configuration
+
+
+#
+# Display Panels
+#
+# end of Display Panels
+
+
+#
+# Display Interface Bridges
+#
+# end of Display Interface Bridges
+
+
+#
+# Frame buffer Devices
+#
+# end of Frame buffer Devices
+
+#
+# Backlight & LCD device support
+#
+# end of Backlight & LCD device support
+
+# end of Graphics support
+
+
+#
+# HD-Audio
+#
+# end of HD-Audio
+
+
+#
+# SoC Audio for Freescale CPUs
+#
+
+#
+# Common SoC Audio options for Freescale CPUs:
+#
+# end of SoC Audio for Freescale CPUs
+
+
+#
+# STMicroelectronics STM32 SOC audio support
+#
+# end of STMicroelectronics STM32 SOC audio support
+
+
+#
+# CODEC drivers
+#
+# end of CODEC drivers
+
+
+#
+# HID support
+#
+
+#
+# Special HID drivers
+#
+# end of Special HID drivers
+
+#
+# USB HID support
+#
+# end of USB HID support
+
+#
+# I2C HID support
+#
+# end of I2C HID support
+# end of HID support
+
+
+#
+# Miscellaneous USB options
+#
+
+#
+# USB Host Controller Drivers
+#
+
+#
+# USB Device Class drivers
+#
+
+#
+# NOTE: USB_STORAGE depends on SCSI but BLK_DEV_SD may
+#
+
+#
+# also be needed; see USB_STORAGE Help for more info
+#
+
+#
+# USB Imaging devices
+#
+
+#
+# Platform Glue Layer
+#
+
+#
+# MUSB DMA mode
+#
+
+#
+# Platform Glue Driver Support
+#
+
+#
+# USB port drivers
+#
+
+#
+# USB Miscellaneous drivers
+#
+
+#
+# USB Physical Layer drivers
+#
+# end of USB Physical Layer drivers
+
+
+#
+# USB Peripheral Controller
+#
+# end of USB Peripheral Controller
+
+
+#
+# USB Type-C Multiplexer/DeMultiplexer Switch support
+#
+# end of USB Type-C Multiplexer/DeMultiplexer Switch support
+
+#
+# USB Type-C Alternate Mode drivers
+#
+# end of USB Type-C Alternate Mode drivers
+
+
+#
+# MMC/SD/SDIO Host Controller Drivers
+#
+# CONFIG_LEDS_CLASS_MULTICOLOR is not set
+
+#
+# LED drivers
+#
+
+#
+# LED driver for blink(1) USB RGB LED is under Special HID drivers (HID_THINGM)
+#
+
+#
+# LED Triggers
+#
+
+#
+# iptables trigger is under Netfilter config (LED target)
+#
+
+#
+# RTC interfaces
+#
+
+#
+# I2C RTC drivers
+#
+
+#
+# SPI RTC drivers
+#
+
+#
+# SPI and I2C RTC drivers
+#
+
+#
+# Platform RTC drivers
+#
+
+#
+# on-CPU RTC drivers
+#
+
+#
+# HID Sensor RTC drivers
+#
+
+#
+# DMA Devices
+#
+
+#
+# DMA Clients
+#
+
+#
+# DMABUF options
+#
+# end of DMABUF options
+
+
+#
+# Microsoft Hyper-V guest support
+#
+# end of Microsoft Hyper-V guest support
+
+
+#
+# IIO staging drivers
+#
+
+#
+# Accelerometers
+#
+# end of Accelerometers
+
+#
+# Analog to digital converters
+#
+# end of Analog to digital converters
+
+#
+# Analog digital bi-direction converters
+#
+# end of Analog digital bi-direction converters
+
+#
+# Capacitance to digital converters
+#
+# end of Capacitance to digital converters
+
+#
+# Direct Digital Synthesis
+#
+# end of Direct Digital Synthesis
+
+#
+# Network Analyzer, Impedance Converters
+#
+# end of Network Analyzer, Impedance Converters
+
+#
+# Active energy metering IC
+#
+# end of Active energy metering IC
+
+#
+# Resolver to digital converters
+#
+# end of Resolver to digital converters
+# end of IIO staging drivers
+
+#
+# Speakup console speech
+#
+# end of Speakup console speech
+
+
+#
+# Android
+#
+# end of Android
+
+
+#
+# Gasket devices
+#
+# end of Gasket devices
+
+CONFIG_SURFACE_PLATFORMS=y
+
+#
+# Common Clock Framework
+#
+# end of Common Clock Framework
+
+
+#
+# Clock Source drivers
+#
+# end of Clock Source drivers
+
+
+#
+# Generic IOMMU Pagetable Support
+#
+# end of Generic IOMMU Pagetable Support
+
+
+#
+# Remoteproc drivers
+#
+# end of Remoteproc drivers
+
+#
+# Rpmsg drivers
+#
+# end of Rpmsg drivers
+
+
+#
+# SOC (System On Chip) specific Drivers
+#
+
+#
+# Amlogic SoC drivers
+#
+# end of Amlogic SoC drivers
+
+#
+# Aspeed SoC drivers
+#
+# end of Aspeed SoC drivers
+
+#
+# Broadcom SoC drivers
+#
+# end of Broadcom SoC drivers
+
+#
+# NXP/Freescale QorIQ SoC drivers
+#
+# end of NXP/Freescale QorIQ SoC drivers
+
+#
+# i.MX SoC drivers
+#
+# end of i.MX SoC drivers
+
+#
+# Qualcomm SoC drivers
+#
+# end of Qualcomm SoC drivers
+
+
+#
+# Xilinx SoC drivers
+#
+# end of Xilinx SoC drivers
+# end of SOC (System On Chip) specific Drivers
+
+
+#
+# DEVFREQ Governors
+#
+
+#
+# DEVFREQ Drivers
+#
+
+#
+# Extcon Device Drivers
+#
+
+#
+# Accelerometers
+#
+# end of Accelerometers
+
+#
+# Analog to digital converters
+#
+# end of Analog to digital converters
+
+#
+# Analog to digital and digital to analog converters
+#
+# end of Analog to digital and digital to analog converters
+
+#
+# Analog Front Ends
+#
+# end of Analog Front Ends
+
+#
+# Amplifiers
+#
+# end of Amplifiers
+
+#
+# Chemical Sensors
+#
+# end of Chemical Sensors
+
+#
+# Hid Sensor IIO Common
+#
+# end of Hid Sensor IIO Common
+
+#
+# SSP Sensor Common
+#
+# end of SSP Sensor Common
+
+#
+# Digital to analog converters
+#
+# end of Digital to analog converters
+
+#
+# IIO dummy driver
+#
+# end of IIO dummy driver
+
+#
+# Frequency Synthesizers DDS/PLL
+#
+
+#
+# Clock Generator/Distribution
+#
+# end of Clock Generator/Distribution
+
+#
+# Phase-Locked Loop (PLL) frequency synthesizers
+#
+# end of Phase-Locked Loop (PLL) frequency synthesizers
+# end of Frequency Synthesizers DDS/PLL
+
+#
+# Digital gyroscope sensors
+#
+# end of Digital gyroscope sensors
+
+#
+# Health Sensors
+#
+
+#
+# Heart Rate Monitors
+#
+# end of Heart Rate Monitors
+# end of Health Sensors
+
+#
+# Humidity sensors
+#
+# end of Humidity sensors
+
+#
+# Inertial measurement units
+#
+# end of Inertial measurement units
+
+#
+# Light sensors
+#
+# end of Light sensors
+
+#
+# Magnetometer sensors
+#
+# end of Magnetometer sensors
+
+#
+# Multiplexers
+#
+# end of Multiplexers
+
+#
+# Inclinometer sensors
+#
+# end of Inclinometer sensors
+
+#
+# Triggers - standalone
+#
+# end of Triggers - standalone
+
+#
+# Digital potentiometers
+#
+# end of Digital potentiometers
+
+#
+# Digital potentiostats
+#
+# end of Digital potentiostats
+
+#
+# Pressure sensors
+#
+# end of Pressure sensors
+
+#
+# Lightning sensors
+#
+# end of Lightning sensors
+
+#
+# Proximity and distance sensors
+#
+# end of Proximity and distance sensors
+
+#
+# Resolver to digital converters
+#
+# end of Resolver to digital converters
+
+#
+# Temperature sensors
+#
+# end of Temperature sensors
+
+
+#
+# IRQ chip support
+#
+# end of IRQ chip support
+
+
+#
+# PHY Subsystem
+#
+# end of PHY Subsystem
+
+
+#
+# Performance monitor support
+#
+# end of Performance monitor support
+
+
+#
+# Android
+#
+# end of Android
+
+
+#
+# HW tracing support
+#
+# end of HW tracing support
+
+
+#
+# KernelSU
+#
+# CONFIG_KSU_ALLOWLIST_WORKAROUND is not set
+CONFIG_KSU_LSM_SECURITY_HOOKS=y
+# end of KernelSU
+# end of Device Drivers
+
+#
+# File systems
+#
+
+#
+# Caches
+#
+# end of Caches
+
+#
+# CD-ROM/DVD Filesystems
+#
+# end of CD-ROM/DVD Filesystems
+
+#
+# DOS/FAT/NT Filesystems
+#
+# end of DOS/FAT/NT Filesystems
+
+#
+# Pseudo filesystems
+#
+# end of Pseudo filesystems
+
+# end of File systems
+
+#
+# Security options
+#
+CONFIG_PROC_MEM_ALWAYS_FORCE=y
+# CONFIG_PROC_MEM_FORCE_PTRACE is not set
+# CONFIG_PROC_MEM_NO_FORCE is not set
+
+#
+# Kernel hardening options
+#
+
+#
+# Memory initialization
+#
+# end of Memory initialization
+# end of Kernel hardening options
+# end of Security options
+
+CONFIG_XOR_BLOCKS=y
+
+#
+# Crypto core or helper
+#
+
+#
+# Public-key cryptography
+#
+
+#
+# Authenticated Encryption with Associated Data
+#
+
+#
+# Block modes
+#
+
+#
+# Hash modes
+#
+
+#
+# Digest
+#
+
+#
+# Ciphers
+#
+
+#
+# Compression
+#
+
+#
+# Random Number Generation
+#
+
+#
+# Certificates for signature checking
+#
+# end of Certificates for signature checking
+
+
+#
+# Library routines
+#
+
+#
+# Crypto library routines
+#
+# end of Crypto library routines
+
+
+#
+# Default contiguous memory area size:
+#
+# end of Library routines
+
+#
+# Kernel hacking
+#
+
+#
+# printk and dmesg options
+#
+# end of printk and dmesg options
+
+#
+# Compile-time checks and compiler options
+#
+# end of Compile-time checks and compiler options
+
+
+#
+# Memory Debugging
+#
+# end of Memory Debugging
+
+
+#
+# Debug Lockups and Hangs
+#
+# end of Debug Lockups and Hangs
+
+
+#
+# Lock Debugging (spinlocks, mutexes, etc...)
+#
+# end of Lock Debugging (spinlocks, mutexes, etc...)
+
+
+#
+# RCU Debugging
+#
+# end of RCU Debugging
+
+# end of Kernel hacking
+
 CONFIG_TRAN_HIBER_SUPPORT=y
 CONFIG_CC_VERSION_TEXT="Android (7284624, based on r416183b) clang version 12.0.5 (https://android.googlesource.com/toolchain/llvm-project c935d99d7cf2016289302412d708641d52d2f7ee)"
 CONFIG_GCC_VERSION=0
@@ -614,18 +1961,18 @@ CONFIG_VHOST=y
 CONFIG_ARM64_CRYPTO=y
 CONFIG_CRYPTO_SHA256_ARM64=y
 # CONFIG_CRYPTO_SHA512_ARM64 is not set
-CONFIG_CRYPTO_SHA1_ARM64_CE=y
+CONFIG_CRYPTO_SHA1_ARM64_CE=m
 CONFIG_CRYPTO_SHA2_ARM64_CE=y
 # CONFIG_CRYPTO_SHA512_ARM64_CE is not set
 # CONFIG_CRYPTO_SHA3_ARM64 is not set
 # CONFIG_CRYPTO_SM3_ARM64_CE is not set
 # CONFIG_CRYPTO_SM4_ARM64_CE is not set
-CONFIG_CRYPTO_GHASH_ARM64_CE=y
+CONFIG_CRYPTO_GHASH_ARM64_CE=m
 CONFIG_CRYPTO_AES_ARM64=y
 CONFIG_CRYPTO_AES_ARM64_CE=y
-CONFIG_CRYPTO_AES_ARM64_CE_CCM=y
+CONFIG_CRYPTO_AES_ARM64_CE_CCM=m
 CONFIG_CRYPTO_AES_ARM64_CE_BLK=y
-CONFIG_CRYPTO_AES_ARM64_NEON_BLK=y
+CONFIG_CRYPTO_AES_ARM64_NEON_BLK=m
 CONFIG_CRYPTO_CHACHA20_NEON=y
 CONFIG_CRYPTO_POLY1305_NEON=y
 # CONFIG_CRYPTO_NHPOLY1305_NEON is not set
@@ -5982,7 +7329,7 @@ CONFIG_CRYPTO_SHA512=y
 CONFIG_CRYPTO_AES=y
 # CONFIG_CRYPTO_AES_TI is not set
 # CONFIG_CRYPTO_ANUBIS is not set
-CONFIG_CRYPTO_ARC4=y
+CONFIG_CRYPTO_ARC4=m
 # CONFIG_CRYPTO_BLOWFISH is not set
 # CONFIG_CRYPTO_CAMELLIA is not set
 # CONFIG_CRYPTO_CAST5 is not set
@@ -5996,14 +7343,14 @@ CONFIG_CRYPTO_CHACHA20=y
 # CONFIG_CRYPTO_SERPENT is not set
 # CONFIG_CRYPTO_SM4 is not set
 # CONFIG_CRYPTO_TEA is not set
-CONFIG_CRYPTO_TWOFISH=y
-CONFIG_CRYPTO_TWOFISH_COMMON=y
+CONFIG_CRYPTO_TWOFISH=m
+CONFIG_CRYPTO_TWOFISH_COMMON=m
 
 #
 # Compression
 #
 CONFIG_CRYPTO_DEFLATE=y
-CONFIG_CRYPTO_LZO=y
+CONFIG_CRYPTO_LZO=m
 # CONFIG_CRYPTO_842 is not set
 CONFIG_CRYPTO_LZ4=y
 # CONFIG_CRYPTO_LZ4HC is not set
@@ -6030,7 +7377,7 @@ CONFIG_CRYPTO_HW=y
 # CONFIG_CRYPTO_DEV_CCP is not set
 # CONFIG_CRYPTO_DEV_NITROX_CNN55XX is not set
 # CONFIG_CRYPTO_DEV_CAVIUM_ZIP is not set
-CONFIG_CRYPTO_DEV_VIRTIO=y
+CONFIG_CRYPTO_DEV_VIRTIO=m
 # CONFIG_CRYPTO_DEV_SAFEXCEL is not set
 # CONFIG_CRYPTO_DEV_CCREE is not set
 # CONFIG_CRYPTO_DEV_HISI_SEC is not set
