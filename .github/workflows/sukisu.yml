@@ -72,7 +72,7 @@ jobs:
           android/abi_gki_aarch64_transsion
           "
           
-          DEFCONFIG=defconfig
+          DEFCONFIG=gki_defconfig
           
           KMI_ENFORCED=1
           TRIM_NONLISTED_KMI=0
@@ -86,17 +86,11 @@ jobs:
           LTO=thin
           EOF
           
-          mkdir out && cd out && mkdir android12-5.4 && cd ..
-          
-          cp common/arch/arm64/configs/fragment_defconfig out/android12-5.4/.config
-          
-          common/scripts/kconfig/merge_config.sh -m common/arch/arm64/configs/gki_defconfig common/arch/arm64/configs/defconfig
-          mv .config out/android12-5.4/.config
           while true; do echo "Build in progress - $(date)"; sleep 300; done &
           
           (make -C common O=../out/android12-5.4 LTO=thin olddefconfig) || true
           
-          LTO=thin BUILD_CONFIG=common/build.config.unisoc DEFCONFIG=defconfig build/build.sh
+          LTO=thin BUILD_CONFIG=common/build.config.unisoc build/build.sh
       # Paso 9: Subir el artefacto de compilación
       - name: 9. Upload Build Artifacts
         uses: actions/upload-artifact@v4
