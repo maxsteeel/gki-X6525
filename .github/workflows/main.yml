@@ -20,9 +20,9 @@ jobs:
       - name: 3. Download Kernel Source
         run: |
           mkdir gki_kernel && cd gki_kernel
-          repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4 --no-repo-verify
-          sed -i 's|path="common" name="kernel/common" revision="android12-5.4"|path="common" name="kernel/common" revision="android12-5.4.210_r00"|' .repo/manifest.xml
-          repo sync -c --no-clone-bundle -j$(nproc --all)
+          repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4 --depth 1 --no-repo-verify
+          
+          repo sync -c --no-tags--no-clone-bundle -j$(nproc --all)
       - name: 4. Integrate KernelSU
         run: |
           cd gki_kernel
@@ -35,19 +35,10 @@ jobs:
       - name: 5. Create GKI-Native Config Fragment
         run: |
           cd gki_kernel
-          echo "CONFIG_KSU=m" > gki.fragment
-          echo "CONFIG_PROC_FS=y" >> kernelsu.fragment
-          echo "CONFIG_CPU_IDLE=y" >> gki.fragment
-          echo "CONFIG_CPU_IDLE_GOV_MENU=y" >> gki.fragment
-          echo "CONFIG_ARM_CPUIDLE=y" >> gki.fragment
-          echo "CONFIG_ARM_PSCI_CPUIDLE=y" >> gki.fragment
-          echo "CONFIG_PM_GENERIC_DOMAINS_SLEEP=y" >> gki.fragment
-          echo "CONFIG_DRM=y" >> gki.fragment
-          echo "CONFIG_DRM_KMS_HELPER=y" >> gki.fragment
-          echo "CONFIG_DRM_MIPI_DSI=y" >> gki.fragment
-          echo "CONFIG_DRM_BRIDGE=y" >> gki.fragment
-          echo "CONFIG_DRM_PANEL_BRIDGE=y" >> gki.fragment
-          echo "CONFIG_DRM_PANEL_SIMPLE=y" >> gki.fragment
+          echo "CONFIG_KSU=y" > gki.fragment
+          
+          echo "CONFIG_ARCH_SPRD=y" >> gki.fragment
+          
           
       # --- PASO MODIFICADO ---
       # Paso 6: Personalizar Versión del Kernel
