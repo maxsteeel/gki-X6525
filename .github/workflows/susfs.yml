@@ -28,7 +28,7 @@ jobs:
           cd gki_kernel
           git clone https://github.com/rsuntk/KernelSU -b susfs-main
           
-          bash KernelSU/kernel/setup.sh
+          bash KernelSU/kernel/setup.sh susfs-main
 
       # Paso 5: Integrar SUSFS para KernelSU (con Corrección Manual)
       - name: 5. Integrate SUSFS for KernelSU (with Patch Fix)
