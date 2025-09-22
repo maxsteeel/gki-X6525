@@ -28,7 +28,7 @@ jobs:
       - name: 4. Integrate KernelSU-Next
         run: |
           cd gki_kernel
-          curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s gki
+          curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s nongki
           curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/forcemodulesload.patch > common/force_modules_load.patch
           cd common
           patch -p1 < force_modules_load.patch
