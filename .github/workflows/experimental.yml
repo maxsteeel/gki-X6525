@@ -96,7 +96,7 @@ jobs:
           cat gki_kernel/common/build.config.gki.aarch64 >> gki_kernel/common/build.config.unisoc
           echo "build.config.unisoc created."
 
-          cat https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/forcemodulesload.patch > gki_kernel/common/force_modules_load.patch
+          curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/forcemodulesload.patch > gki_kernel/common/force_modules_load.patch
           cd gki_kernel/common
           patch -p1 < force_modules_load.patch
           echo "Patching successful"
