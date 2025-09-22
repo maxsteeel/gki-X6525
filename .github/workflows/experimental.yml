@@ -129,7 +129,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Unisoc-GKI-Next-Build
-          path: 
+          path: |
             gki_kernel/out/android12-5.4/**/Image
             gki_kernel/out/android12-5.4/**/*.ko
           
