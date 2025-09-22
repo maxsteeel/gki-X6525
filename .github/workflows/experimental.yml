@@ -106,15 +106,11 @@ jobs:
           sed -i 's/^echo "\$res"$/echo "-lts-Max-X6525-GKI-Next"/' gki_kernel/common/scripts/setlocalversion
           echo "Kernel version hardcoded to -lts-Max-X6525-GKI-Next"
           
-      
       # Paso 8: Actualizar Lista y Compilación Final
       - name: 8. Update Module List & Final Build
         run: |
           cd gki_kernel
-          # Copiamos la lista correcta
-          cp out/android12-5.4/common/modules.order common/android/gki_aarch64_modules
-          echo "Lista de módulos actualizada."
-          # La compilación final ahora tendrá éxito
+          
           LTO=thin KERNEL_CMDLINE="cpuidle.off=1" BUILD_CONFIG=common/build.config.unisoc build/build.sh
       
       # Paso 9: Subir el artefacto de compilación
