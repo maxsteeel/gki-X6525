@@ -21,16 +21,14 @@ jobs:
         run: |
           mkdir gki_kernel && cd gki_kernel
           repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4 --no-repo-verify
-          
-          repo sync -c --no-tags --no-clone-bundle -j$(nproc --all)
+          sed -i 's|path="common" name="kernel/common" revision="android12-5.4"|path="common" name="kernel/common" revision="android12-5.4.210_r00"|' .repo/manifest.xml
+          repo sync -c --no-clone-bundle -j$(nproc --all)
       - name: 4. Integrate KernelSU
         run: |
           cd gki_kernel
-          git clone https://github.com/tiann/KernelSU.git
-          cd KernelSU
-          git checkout v0.9.5 
-          cd ..
-          bash KernelSU/kernel/setup.sh v0.9.5
+          git clone https://github.com/rsuntk/KernelSU
+          
+          bash KernelSU/kernel/setup.sh
 
       # --- PASO MODIFICADO ---
       # Paso 5: Crear Fragmento de Configuración GKI-Nativo
@@ -66,21 +64,7 @@ jobs:
           while true; do echo "Build in progress - $(date)"; sleep 300; done &
           # Usamos el GKI_DEFCONFIG_FRAGMENT y el BUILD_CONFIG por defecto de GKI
           GKI_DEFCONFIG_FRAGMENT=gki.fragment LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
-
-      - name: 7.1 Build and Place KernelSU Module 
-        run: |
-          cd gki_kernel
-          
-          # 1. Usamos el mismo entorno de GKI para compilar SOLO el módulo de KernelSU
-          BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh "make -C ${KERNEL_DIR} M=KernelSU/kernel"
-
-          # 2. Verificamos que se creó el .ko y lo movemos al directorio de módulos principal
-          # para que el siguiente paso lo encuentre y lo procese.
-          echo "Buscando el módulo kernelsu.ko..."
-          find out/android12-5.4/ -name "kernelsu.ko"
-          cp out/android12-5.4/KernelSU/kernel/kernelsu.ko out/android12-5.4/dist
-          echo "kernelsu.ko movido a la raíz de salida."
-          
+      
       # Paso 9: Subir el artefacto de compilación
       - name: 9. Upload Build Artifacts
         uses: actions/upload-artifact@v4
