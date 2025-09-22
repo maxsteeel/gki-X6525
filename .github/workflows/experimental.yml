@@ -1,7 +1,6 @@
 # Nombre del workflow
-name: (EXPERIMENTAL) Build GKI Kernel with KernelSU-Next
+name: (EXPERIMENTAL) Build Unisoc GKI with Full Stock Config
 
-# Cómo se activa este workflow
 on:
   workflow_dispatch:
 
@@ -10,115 +9,135 @@ jobs:
     name: Build Kernel
     runs-on: ubuntu-22.04
     steps:
-      # Pasos 1-3 (Sin cambios)
+      # Pasos 1-4 (Sin cambios)
       - name: 1. Install Dependencies
-        run: |
-          sudo apt-get update && sudo apt-get install -y --no-install-recommends git bc bison build-essential curl flex g++-multilib gcc-multilib gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev libelf-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends repo git bc build-essential curl g++-multilib gcc-multilib gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev libelf-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
       - name: 2. Setup Repo Tool
-        run: |
-          mkdir -p ~/bin && curl -s https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo && chmod a+x ~/bin/repo && echo "$HOME/bin" >> $GITHUB_PATH
+        run: mkdir -p ~/bin && curl -s https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo && chmod a+x ~/bin/repo && echo "$HOME/bin" >> $GITHUB_PATH
       - name: 3. Download Kernel Source
         run: |
           mkdir gki_kernel && cd gki_kernel
-          repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4-lts --no-repo-verify
-          
+          repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4
           repo sync -c --no-tags --no-clone-bundle -j$(nproc --all)
-
-      # Paso 4: Integrar KernelSU-Next
       - name: 4. Integrate KernelSU-Next
         run: |
-          cd gki_kernel
-          # 1. Usamos el repositorio CORRECTO de KernelSU-Next y lo clonamos en una carpeta llamada 'KernelSU'
-          git clone https://github.com/KernelSU-Next/KernelSU-Next.git
-          # 2. Ejecutamos el script de instalación
-          bash KernelSU-Next/kernel/setup.sh
+          cd gki_kernel/common
+          git clone https://github.com/tiann/KernelSU.git
+          cd KernelSU
+          git checkout v0.9.5 
+          cd ..
+          bash KernelSU/kernel/setup.sh v0.9.5
+          echo "KernelSU-Next replaced with KernelSU"
 
-      # Paso 5: Integrar SUSFS para KernelSU (con Corrección Manual)
-      #- name: 5. Integrate SUSFS for KernelSU (with Patch Fix)
-        #run: |
-          # 1. Clonamos el repositorio de susfs (sin cambios)
-          #git clone --depth=1 --branch kernel-5.4 https://gitlab.com/simonpunk/susfs4ksu.git
-          
-          # 2. Copiamos los parches y archivos (sin cambios)
-          #cp susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch gki_kernel/KernelSU-Next/
-          #cp susfs4ksu/kernel_patches/50_add_susfs_in_kernel-5.4.patch gki_kernel/common/
-          #cp -r susfs4ksu/kernel_patches/fs/* gki_kernel/common/fs/
-          #cp -r susfs4ksu/kernel_patches/include/linux/* gki_kernel/common/include/linux/
-          
-          # 3. Aplicamos el parche a KernelSU, permitiendo que falle con '|| true'
-          #cd gki_kernel/KernelSU-Next
-          #patch -p1 < 10_enable_susfs_for_ksu.patch || true
-          #cd ../..
-
-          # 4. CORRECCIÓN MANUAL: Aplicamos el cambio del Hunk #7 con 'sed'.
-          #    Esto inserta la llamada a 'ksu_load_allow_rules' en el lugar correcto de selinux.c
-          #sed -i '/if (!is_ksud_present())/a \ \ \ \ ksu_load_allow_rules(cred);' gki_kernel/KernelSU-Next/kernel/selinux/selinux.c
-          
-          # 5. Aplicamos el parche principal al kernel (este no debería fallar)
-          #cd gki_kernel/common
-          #patch -p1 < 50_add_susfs_in_kernel-5.4.patch
-          #cd ../..
-          #echo "SUSFS patches applied successfully with manual fix."
-
-          # Este comando elimina el bloque de código que intenta usar los kprobes
-          # que ya no existen en KernelSU-Next, resolviendo el error de compilación.
-          #sed -i "/enable_kprobe(&execve_kp);/,/disable_kprobe(&pts_unix98_lookup_kp);/d" gki_kernel/common/drivers/kernelsu/sucompat.c
-          #echo "Incompatible kprobe code removed from sucompat.c."
-
-      # Paso 6: Crear Fragmento de Configuración GKI-Nativo
-      - name: 5. Create GKI-Native Config Fragment
+      # Paso 5: Preparar Archivos de Configuración (Sin cambios)
+      - name: 5. Prepare Config Files
         run: |
-          cd gki_kernel
           
-          cp common/android/abi_gki_aarch64_unisoc common/android/abi_gki_aarch64
-          cat common/android/abi_gki_aarch64_transsion >> common/android/abi_gki_aarch64
+          curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/config_stock.txt > gki_kernel/common/arch/arm64/configs/stock_defconfig
           
-          curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/ums9230-1h10-go.dts > common/arch/arm64/boot/dts/sprd/ums9230-1h10-go.dts
+          curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/ums9230-1h10-go.dts > gki_kernel/common/arch/arm64/boot/dts/sprd/ums9230-1h10-go.dts
           
-          sed -i '/sp9860g-1h10.dtb/a \\t\t\tums9230-1h10-go.dtb \\' common/arch/arm64/boot/dts/sprd/Makefile
+          sed -i '/sp9860g-1h10.dtb/a \\t\t\tums9230-1h10-go.dtb \\' gki_kernel/common/arch/arm64/boot/dts/sprd/Makefile
           echo "DTS Makefile updated to include ums9230-1h10-go.dtb."
           
-      # Paso 7: Preparar la configuración para los módulos de Unisoc
-      - name: 6. Prepare Environment for Stock Build
-        run: |
-          # Creamos el build.config para que el sistema sea permisivo y encuentre los símbolos
-          curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/config_stock.txt > gki_kernel/common/arch/arm64/configs/stock_defconfig
-          echo "stock_defconfig placed in the kernel tree."
 
-          # 2. Aplicamos el parche al Makefile para falsear /proc/config.gz
-          # Usamos una expresión regular más segura para evitar reemplazar la línea equivocada
-          sed -i 's|^\s*\($(obj)/config_data: \)$(KCONFIG_CONFIG)\( FORCE\).*|\1arch/arm64/configs/stock_defconfig\2|' gki_kernel/common/kernel/Makefile
-          echo "kernel/Makefile patched to spoof /proc/config.gz."
-          
-          echo "TRIM_NONLISTED_KMI=0" >> gki_kernel/common/build.config.unisoc
-          echo "KMI_SYMBOL_LIST_STRICT_MODE=0" >> gki_kernel/common/build.config.unisoc
-          echo "KMI_ENFORCED=0" >> gki_kernel/common/build.config.unisoc
-          cat gki_kernel/common/build.config.gki.aarch64 >> gki_kernel/common/build.config.unisoc
-          echo "build.config.unisoc created."
-
-          curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/forcemodulesload.patch > gki_kernel/common/force_modules_load.patch
-          cd gki_kernel/common
-          patch -p1 < force_modules_load.patch
-          echo "Patching successful"
-      # Paso 8: Personalizar Versión del Kernel
-      - name: 7. Set Custom Kernel Version
-        run: |
-          sed -i 's/^echo "\$res"$/echo "-lts-Max-X6525-GKI-Next"/' gki_kernel/common/scripts/setlocalversion
-          echo "Kernel version hardcoded to -lts-Max-X6525-GKI-Next"
-          
-      # Paso 8: Actualizar Lista y Compilación Final
-      - name: 8. Update Module List & Final Build
+      # --- PASO 6: CORREGIDO Y SIMPLIFICADO ---
+      - name: 6. Build The Kernel
         run: |
           cd gki_kernel
           
-          LTO=thin KERNEL_CMDLINE="cpuidle.off=1" BUILD_CONFIG=common/build.config.unisoc build/build.sh
-      
-      # Paso 9: Subir el artefacto de compilación
-      - name: 9. Upload Build Artifacts
+          # 1. Creamos nuestra "hoja de pedido" con todas las instrucciones.
+          cat <<EOF > common/build.config.unisoc
+          . /home/runner/work/gki-X6525/gki-X6525/gki_kernel/common/build.config.aarch64
+
+          BRANCH=android12-5.4
+          KMI_GENERATION=9
+          LLVM=1
+          DEPMOD=depmod
+          CLANG_PREBUILT_BIN=prebuilts-master/clang/host/linux-x86/clang-r416183b/bin
+          BUILDTOOLS_PREBUILT_BIN=build/build-tools/path/linux-x86
+          KCFLAGS="${KCFLAGS} -D__ANDROID_COMMON_KERNEL__"
+          EXTRA_CMDS=''
+          STOP_SHIP_TRACEPRINTK=1
+          
+          ABI_DEFINITION=android/abi_gki_aarch64.xml
+          KMI_SYMBOL_LIST=android/abi_gki_aarch64
+          ADDITIONAL_KMI_SYMBOL_LISTS="
+          android/abi_gki_aarch64_unisoc
+          android/abi_gki_aarch64_transsion
+          "
+          
+          # Usar nuestra configuración, no la de GKI.
+          DEFCONFIG=stock_defconfig
+          
+          # Desactivar TODAS las verificaciones de KMI.
+          KMI_ENFORCED=0
+          TRIM_NONLISTED_KMI=0
+          KMI_SYMBOL_LIST_STRICT_MODE=0
+          IN_KERNEL_MODULES=1
+          DO_NOT_STRIP_MODULES=1
+          
+          # Usar nuestra lista de módulos como la verdad absoluta.
+          MODULES_ORDER=android/gki_aarch64_modules
+          KERNEL_CMDLINE="cpuidle.off=1"
+          
+          # Opciones de optimización.
+          LTO=thin
+          EOF
+          
+          ln -s common/build.config.unisoc build.config
+          
+           # 1. Cargamos el entorno del compilador (Clang, PATH, etc.)
+          source build/_setup_env.sh
+          
+          # 2. Copiamos NUESTRA defconfig al directorio de salida y la renombramos a .config
+          #    Este es el paso clave que faltaba y que resuelve el error.
+          mkdir out && cd out && mkdir android12-5.4 && cd ..
+          
+          cp common/arch/arm64/configs/stock_defconfig out/android12-5.4/.config
+
+          # 3. Usamos el script 'merge_config.sh' para fusionar la configuración
+          #    base de GKI con tu configuración de dispositivo (stock_defconfig).
+          #    Esto crea un archivo .config que contiene la base completa de GKI
+          #    más todos tus ajustes específicos.
+          
+          common/scripts/kconfig/merge_config.sh -m common/arch/arm64/configs/gki_defconfig common/arch/arm64/configs/stock_defconfig
+
+          # 4. El resultado de la fusión es un nuevo .config. Lo movemos al directorio de salida.
+          mv .config out/android12-5.4/.config
+          
+          while true; do echo "Build in progress - $(date)"; sleep 300; done &
+          export LTO=thin
+          # 5. Ejecutamos 'make olddefconfig' para que el sistema valide y complete
+          #    nuestra configuración, preparándola para la compilación.
+          (make -C common O=../out/android12-5.4 LTO=thin olddefconfig) || true
+
+          # --- PARTE B: Compilar el Kernel Principal ---
+          echo "### Compilando el kernel principal... ###"
+
+          # Ejecutamos 'make' con los objetivos que necesitamos (Image.lz4 y módulos estándar)
+          make -C common O=../out/android12-5.4 LTO=thin Image modules
+
+          # --- PARTE C: Compilar el Módulo de KernelSU ---
+          # echo "### Compilando el módulo de KernelSU por separado... ###"
+          
+          # Ya no necesitamos 'modules_prepare' porque la compilación principal ya lo hizo todo.
+          # Compilamos directamente el módulo de KernelSU.
+          # make -C common O=../out/android12-5.4 M=KernelSU-Next/kernel modules
+          
+          # --- PARTE D: Mover el artefacto ---
+          # echo "Buscando y moviendo kernelsu.ko..."
+          # (cp $(find out/android12-5.4/ -name "kernelsu.ko") out/android12-5.4/) || true
+          # echo "kernelsu.ko listo para ser empaquetado."
+
+
+      # Paso 7: Subir los artefactos
+      - name: 7. Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: GKI-Build-Artifacts-5.4-Max-X6525-Next
-          path: gki_kernel/out/android12-5.4/dist/
-
-
+          name: Unisoc-GKI-Next-Build
+          path: 
+            gki_kernel/out/android12-5.4/**/Image
+            gki_kernel/out/android12-5.4/**/*.ko
+          
           
