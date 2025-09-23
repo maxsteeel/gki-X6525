@@ -46,8 +46,8 @@ jobs:
       # Paso 7: Personalizar Versión del Kernel
       - name: 7. Set Custom Kernel Version
         run: |
-          sed -i 's/^echo "\$res"$/echo "-lts-Max-X6525-GKI-Next"/' gki_kernel/common/scripts/setlocalversion
-          echo "Kernel version hardcoded to -lts-Max-X6525-GKI-Next"
+          sed -i 's/^echo "\$res"$/echo "-lts-Max-X6525-GKI-Ultra"/' gki_kernel/common/scripts/setlocalversion
+          echo "Kernel version hardcoded to -lts-Max-X6525-GKI-Ultra"
       # Paso 8: Compilar el Kernel
       - name: 8. Build Kernel
         run: |
@@ -56,9 +56,9 @@ jobs:
           
           while true; do echo "Build in progress - $(date)"; sleep 300; done &
           
-          (make -C common O=../out/android12-5.4 LTO=thin olddefconfig) || true
+          # (make -C common O=../out/android12-5.4 LTO=thin olddefconfig) || true
           
-          LTO=thin BUILD_CONFIG=build.gki.aarch64 build/build.sh
+          LTO=thin KERNEL_CMDLINE="cpuidle.off=1" BUILD_CONFIG=common/build.config.unisoc build/build.sh
       # Paso 9: Subir el artefacto de compilación
       - name: 9. Upload Build Artifacts
         uses: actions/upload-artifact@v4
