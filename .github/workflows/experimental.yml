@@ -52,7 +52,7 @@ jobs:
 
           # 4. CORRECCIÓN MANUAL: Aplicamos el cambio del Hunk #7 con 'sed'.
           #    Esto inserta la llamada a 'ksu_load_allow_rules' en el lugar correcto de selinux.c
-          #sed -i '/if (!is_ksud_present())/a \ \ \ \ ksu_load_allow_rules(cred);' gki_kernel/KernelSU-Next/kernel/selinux/selinux.c
+          sed -i '/if (!is_ksud_present())/a \ \ \ \ ksu_load_allow_rules(cred);' gki_kernel/KernelSU-Next/kernel/selinux/selinux.c
           
           # 5. Aplicamos el parche principal al kernel (este no debería fallar)
           cd gki_kernel/common
