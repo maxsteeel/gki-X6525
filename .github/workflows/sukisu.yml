@@ -58,7 +58,7 @@ jobs:
           
           # (make -C common O=../out/android12-5.4 LTO=thin olddefconfig) || true
           
-          LTO=thin KERNEL_CMDLINE="cpuidle.off=1" BUILD_CONFIG=common/build.config.unisoc build/build.sh
+          LTO=thin KERNEL_CMDLINE="cpuidle.off=1" BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
       # Paso 9: Subir el artefacto de compilación
       - name: 9. Upload Build Artifacts
         uses: actions/upload-artifact@v4
