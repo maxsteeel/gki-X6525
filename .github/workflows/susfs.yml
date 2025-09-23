@@ -34,7 +34,10 @@ jobs:
       - name: 5. Integrate SUSFS for KernelSU (with Patch Fix)
         run: |
           # 1. Clonamos el repositorio de susfs (sin cambios)
-          git clone --branch kernel-5.4 https://gitlab.com/simonpunk/susfs4ksu.git
+          git clone https://gitlab.com/simonpunk/susfs4ksu.git
+          cd susfs4ksu
+          git checkout 1.4.2-kernel-5.4
+          cd ..
           
           # 2. Copiamos los parches y archivos (sin cambios)
           cp susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch gki_kernel/KernelSU/
