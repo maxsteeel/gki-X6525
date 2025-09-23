@@ -20,7 +20,7 @@ jobs:
       - name: 3. Download Kernel Source
         run: |
           mkdir gki_kernel && cd gki_kernel
-          repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4-lts --no-repo-verify
+          repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4-lts --depth 1 --no-repo-verify
           
           repo sync -c --no-tags --no-clone-bundle -j$(nproc --all)
 
