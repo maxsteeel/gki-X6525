@@ -53,44 +53,12 @@ jobs:
         run: |
           cd gki_kernel
           
-          cat <<EOF > common/build.config.unisoc
-          . /home/runner/work/gki-X6525/gki-X6525/gki_kernel/common/build.config.aarch64
-          BRANCH=android12-5.4
-          KMI_GENERATION=9
-          LLVM=1
-          DEPMOD=depmod
-          CLANG_PREBUILT_BIN=prebuilts-master/clang/host/linux-x86/clang-r416183b/bin
-          BUILDTOOLS_PREBUILT_BIN=build/build-tools/path/linux-x86
-          KCFLAGS="${KCFLAGS} -D__ANDROID_COMMON_KERNEL__"
-          EXTRA_CMDS=''
-          STOP_SHIP_TRACEPRINTK=1
-          
-          ABI_DEFINITION=android/abi_gki_aarch64.xml
-          KMI_SYMBOL_LIST=android/abi_gki_aarch64
-          ADDITIONAL_KMI_SYMBOL_LISTS="
-          android/abi_gki_aarch64_unisoc
-          android/abi_gki_aarch64_transsion
-          "
-          
-          DEFCONFIG=gki_defconfig
-          
-          KMI_ENFORCED=1
-          TRIM_NONLISTED_KMI=0
-          KMI_SYMBOL_LIST_STRICT_MODE=0
-          IN_KERNEL_MODULES=1
-          DO_NOT_STRIP_MODULES=1
-          
-          MODULES_ORDER=android/gki_aarch64_modules
-          KERNEL_CMDLINE=""
-          
-          LTO=thin
-          EOF
           
           while true; do echo "Build in progress - $(date)"; sleep 300; done &
           
           (make -C common O=../out/android12-5.4 LTO=thin olddefconfig) || true
           
-          LTO=thin BUILD_CONFIG=common/build.config.unisoc build/build.sh
+          LTO=thin BUILD_CONFIG=build.gki.aarch64 build/build.sh
       # Paso 9: Subir el artefacto de compilación
       - name: 9. Upload Build Artifacts
         uses: actions/upload-artifact@v4
