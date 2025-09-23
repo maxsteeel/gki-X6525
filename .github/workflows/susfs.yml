@@ -28,7 +28,7 @@ jobs:
           cd gki_kernel
           git clone https://github.com/rsuntk/KernelSU
           
-          bash KernelSU/kernel/setup.sh
+          bash KernelSU/kernel/setup.sh susfs-legacy
 
       # Paso 5: Integrar SUSFS para KernelSU (con Corrección Manual)
       - name: 5. Integrate SUSFS for KernelSU (with Patch Fix)
@@ -55,56 +55,25 @@ jobs:
           cd gki_kernel/common
           patch -p1 < 50_add_susfs_in_kernel-5.4.patch
           cd ../..
-          echo "SUSFS patches applied successfully"
-
-  
-      # --- PASO MODIFICADO ---
-      # Paso 6: Crear Fragmento de Configuración GKI-Nativo
-      - name: 6. Create GKI-Native Config Fragment
-        run: |
-          cd gki_kernel
-          echo "CONFIG_KSU=y" >> gki.fragment
-          echo "CONFIG_KSU_SUSFS=y" >> gki.fragment
-          echo "CONFIG_KSU_SUSFS_SUS_PATH=y" >> gki.fragment
-          echo "CONFIG_KSU_SUSFS_SUS_MOUNT=y" >> gki.fragment
-          echo "CONFIG_KSU_SUSFS_SUS_KSTAT=y" >> gki.fragment
-          echo "CONFIG_KSU_SUSFS_SUS_OVERLAYFS=y" >> gki.fragment
-          echo "CONFIG_KSU_SUSFS_TRY_UMOUNT=y" >> gki.fragment
-          echo "CONFIG_KSU_SUSFS_SPOOF_UNAME=y" >> gki.fragment
-          echo "CONFIG_KSU_SUSFS_ENABLE_LOG=y" >> gki.fragment
-          echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> gki.fragment
-          echo "CONFIG_KSU_SUSFS_SUS_SU=y" >> gki.fragment
-          echo "CONFIG_PROC_FS=y" >> gki.fragment
-          echo "CONFIG_CPU_IDLE=y" >> gki.fragment
-          echo "CONFIG_CPU_IDLE_GOV_MENU=y" >> gki.fragment
-          echo "CONFIG_ARM_CPUIDLE=y" >> gki.fragment
-          echo "CONFIG_ARM_PSCI_CPUIDLE=y" >> gki.fragment
-          echo "CONFIG_PM_GENERIC_DOMAINS_SLEEP=y" >> gki.fragment
-          echo "CONFIG_DRM=y" >> gki.fragment
-          echo "CONFIG_DRM_KMS_HELPER=y" >> gki.fragment
-          echo "CONFIG_DRM_MIPI_DSI=y" >> gki.fragment
-          echo "CONFIG_DRM_BRIDGE=y" >> gki.fragment
-          echo "CONFIG_DRM_PANEL_BRIDGE=y" >> gki.fragment
-          echo "CONFIG_DRM_PANEL_SIMPLE=y" >> gki.fragment
-          
+          echo "SUSFS patches applied successfully
       # --- PASO MODIFICADO ---
       # Paso 7: Personalizar Versión del Kernel
-      - name: 7. Set Custom Kernel Version
+      - name: 6. Set Custom Kernel Version
         run: |
           sed -i 's/^echo "\$res"$/echo "-Max-X6525-GKI"/' gki_kernel/common/scripts/setlocalversion
           echo "Kernel version hardcoded to -lts-Max-X6525-GKI-KSU-SUSFS"
 
       # --- PROCESO DE COMPILACIÓN SIMPLIFICADO ---
       # Paso 8: Compilar el Kernel (Primer Intento)
-      - name: 8. Build Kernel (First Attempt)
+      - name: 7. Build Kernel (First Attempt)
         run: |
           cd gki_kernel
           while true; do echo "Build in progress - $(date)"; sleep 300; done &
           # Usamos el GKI_DEFCONFIG_FRAGMENT y el BUILD_CONFIG por defecto de GKI
-          GKI_DEFCONFIG_FRAGMENT=gki.fragment LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
+          LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
       
       # Paso 9: Subir el artefacto de compilación
-      - name: 9. Upload Build Artifacts
+      - name: 8. Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: GKI-Build-Artifacts-5.4-Max-X6525-GSI
