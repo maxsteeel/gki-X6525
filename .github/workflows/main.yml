@@ -26,19 +26,9 @@ jobs:
       - name: 4. Integrate KernelSU
         run: |
           cd gki_kernel
-          git clone https://github.com/rsuntk/KernelSU
+          git clone https://github.com/maxsteeel/KernelSU
           
           bash KernelSU/kernel/setup.sh
-
-      # --- PASO MODIFICADO ---
-      # Paso 5: Crear Fragmento de Configuración GKI-Nativo
-      - name: 5. Create GKI-Native Config Fragment
-        run: |
-          cd gki_kernel
-          echo "CONFIG_KSU=m" > gki.fragment
-          
-          echo "CONFIG_ARCH_SPRD=y" >> gki.fragment
-          
           
       # --- PASO MODIFICADO ---
       # Paso 6: Personalizar Versión del Kernel
@@ -54,7 +44,7 @@ jobs:
           cd gki_kernel
           while true; do echo "Build in progress - $(date)"; sleep 300; done &
           # Usamos el GKI_DEFCONFIG_FRAGMENT y el BUILD_CONFIG por defecto de GKI
-          GKI_DEFCONFIG_FRAGMENT=gki.fragment KERNEL_CMDLINE="cpuidle.off=1" LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
+          LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
       
       # Paso 9: Subir el artefacto de compilación
       - name: 9. Upload Build Artifacts
