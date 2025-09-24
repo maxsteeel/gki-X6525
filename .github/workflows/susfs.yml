@@ -43,9 +43,9 @@ jobs:
           cp -r susfs4ksu/kernel_patches/include/linux/* gki_kernel/common/include/linux/
           
           # 3. Aplicamos el parche a KernelSU, permitiendo que falle con '|| true'
-          cd gki_kernel/KernelSU
-          patch -p1 < 10_enable_susfs_for_ksu.patch || true
-          cd ../..
+          # cd gki_kernel/KernelSU
+          # patch -p1 < 10_enable_susfs_for_ksu.patch || true
+          # cd ../..
 
           # 4. CORRECCIÓN MANUAL: Aplicamos el cambio del Hunk #7 con 'sed'.
           #    Esto inserta la llamada a 'ksu_load_allow_rules' en el lugar correcto de selinux.c
