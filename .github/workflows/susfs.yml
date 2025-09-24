@@ -26,9 +26,9 @@ jobs:
       - name: 4. Integrate KernelSU
         run: |
           cd gki_kernel
-          git clone https://github.com/rsuntk/KernelSU
+          git clone https://github.com/maxsteeel/KernelSU
           
-          bash KernelSU/kernel/setup.sh
+          bash KernelSU/kernel/setup.sh susfs-main
 
       # Paso 5: Integrar SUSFS para KernelSU (con Corrección Manual)
       - name: 5. Integrate SUSFS for KernelSU (with Patch Fix)
@@ -58,24 +58,7 @@ jobs:
           echo "SUSFS patches applied successfully"
 
   
-      # --- PASO MODIFICADO ---
-      # Paso 6: Crear Fragmento de Configuración GKI-Nativo
-      - name: 6. Create GKI-Native Config Fragment
-        run: |
-          cd gki_kernel
-          echo "CONFIG_KSU=y" >> gki.fragment
-          echo "CONFIG_KSU_SUSFS=y" >> gki.fragment
-          echo "CONFIG_KSU_SUSFS_SUS_PATH=y" >> gki.fragment
-          echo "CONFIG_KSU_SUSFS_SUS_MOUNT=y" >> gki.fragment
-          echo "CONFIG_KSU_SUSFS_SUS_KSTAT=y" >> gki.fragment
-          echo "CONFIG_KSU_SUSFS_SUS_OVERLAYFS=y" >> gki.fragment
-          echo "CONFIG_KSU_SUSFS_TRY_UMOUNT=y" >> gki.fragment
-          echo "CONFIG_KSU_SUSFS_SPOOF_UNAME=y" >> gki.fragment
-          echo "CONFIG_KSU_SUSFS_ENABLE_LOG=y" >> gki.fragment
-          echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> gki.fragment
-          echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> gki.fragment
-          echo "CONFIG_PROC_FS=y" >> gki.fragment
-          
+      
           
       # --- PASO MODIFICADO ---
       # Paso 7: Personalizar Versión del Kernel
@@ -91,7 +74,7 @@ jobs:
           cd gki_kernel
           while true; do echo "Build in progress - $(date)"; sleep 300; done &
           # Usamos el GKI_DEFCONFIG_FRAGMENT y el BUILD_CONFIG por defecto de GKI
-          GKI_DEFCONFIG_FRAGMENT=gki.fragment LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
+          LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
       
       # Paso 9: Subir el artefacto de compilación
       - name: 9. Upload Build Artifacts
