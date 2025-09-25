@@ -29,9 +29,9 @@ jobs:
         run: |
           cd gki_kernel
           # 1. Usamos el repositorio CORRECTO de KernelSU-Next y lo clonamos en una carpeta llamada 'KernelSU'
-          git clone https://github.com/pershoot/KernelSU-Next
+          git clone https://github.com/maxsteeel/KernelSU-Next -b susfs-legacy
           # 2. Ejecutamos el script de instalación
-          bash KernelSU-Next/kernel/setup.sh next-susfs
+          bash KernelSU-Next/kernel/setup.sh susfs-legacy
 
       # Paso 5: Integrar SUSFS para KernelSU (con Corrección Manual)
       - name: 5. Integrate SUSFS for KernelSU (with Patch Fix)
