@@ -26,9 +26,9 @@ jobs:
       - name: 4. Integrate KernelSU
         run: |
           cd gki_kernel
-          git clone https://github.com/maxsteeel/KernelSU
+          git clone https://github.com/tiann/KernelSU
           
-          bash KernelSU/kernel/setup.sh
+          bash KernelSU/kernel/setup.sh 4d3560b12bec5f238fe11f908a246f0ac97e9c27
 
       # Paso 5: Integrar SUSFS para KernelSU (con Corrección Manual)
       - name: 5. Integrate SUSFS for KernelSU (with Patch Fix)
