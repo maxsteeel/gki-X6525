@@ -38,7 +38,7 @@ jobs:
           
           # 2. Copiamos los parches y archivos (sin cambios)
           cp susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch gki_kernel/KernelSU/
-          cp susfs4ksu/kernel_patches/50_add_susfs_in_kernel-5.4.patch gki_kernel/common/
+          cp susfs4ksu/kernel_patches/50_add_susfs_in_gki-android12-5.10.patch gki_kernel/common/
           cp -r susfs4ksu/kernel_patches/fs/* gki_kernel/common/fs/
           cp -r susfs4ksu/kernel_patches/include/linux/* gki_kernel/common/include/linux/
           
@@ -54,7 +54,7 @@ jobs:
           
           # 5. Aplicamos el parche principal al kernel (este no debería fallar)
           cd gki_kernel/common
-          patch -p1 < 50_add_susfs_in_kernel-5.4.patch
+          patch -p1 < 50_add_susfs_in_gki-android12-5.10.patch
           cd ../..
           echo "SUSFS patches applied successfully"
 
