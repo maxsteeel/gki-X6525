@@ -28,23 +28,23 @@ jobs:
           cd gki_kernel
           git clone https://github.com/tiann/KernelSU
           
-          bash KernelSU/kernel/setup.sh 4d3560b12bec5f238fe11f908a246f0ac97e9c27
+          bash KernelSU/kernel/setup.sh
 
       # Paso 5: Integrar SUSFS para KernelSU (con Corrección Manual)
       - name: 5. Integrate SUSFS for KernelSU (with Patch Fix)
         run: |
           # 1. Clonamos el repositorio de susfs (sin cambios)
-          git clone --branch kernel-5.4 https://gitlab.com/simonpunk/susfs4ksu.git
+          git clone --branch gki-android12-5.10 https://gitlab.com/simonpunk/susfs4ksu.git
           
           # 2. Copiamos los parches y archivos (sin cambios)
-          # cp susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch gki_kernel/KernelSU/
+          cp susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch gki_kernel/KernelSU/
           cp susfs4ksu/kernel_patches/50_add_susfs_in_kernel-5.4.patch gki_kernel/common/
           cp -r susfs4ksu/kernel_patches/fs/* gki_kernel/common/fs/
           cp -r susfs4ksu/kernel_patches/include/linux/* gki_kernel/common/include/linux/
           
           # 3. Aplicamos el parche a KernelSU, permitiendo que falle con '|| true'
           cd gki_kernel/KernelSU
-          curl -L "https://gitlab.com/simonpunk/susfs4ksu/-/raw/gki-android12-5.10/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch" -o 10_enable_susfs_for_ksu.patch
+          # curl -L "https://gitlab.com/simonpunk/susfs4ksu/-/raw/gki-android12-5.10/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch" -o 10_enable_susfs_for_ksu.patch
           patch -p1 < 10_enable_susfs_for_ksu.patch
           cd ../..
 
