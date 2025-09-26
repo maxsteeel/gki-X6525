@@ -28,7 +28,7 @@ jobs:
           cd gki_kernel
           git clone https://github.com/maxsteeel/KernelSU
           
-          bash KernelSU/kernel/setup.sh susfs-legacy
+          bash KernelSU/kernel/setup.sh
 
       # Paso 5: Integrar SUSFS para KernelSU (con Corrección Manual)
       - name: 5. Integrate SUSFS for KernelSU (with Patch Fix)
@@ -37,15 +37,16 @@ jobs:
           git clone --branch kernel-5.4 https://gitlab.com/simonpunk/susfs4ksu.git
           
           # 2. Copiamos los parches y archivos (sin cambios)
-          cp susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch gki_kernel/KernelSU/
+          # cp susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch gki_kernel/KernelSU/
           cp susfs4ksu/kernel_patches/50_add_susfs_in_kernel-5.4.patch gki_kernel/common/
           cp -r susfs4ksu/kernel_patches/fs/* gki_kernel/common/fs/
           cp -r susfs4ksu/kernel_patches/include/linux/* gki_kernel/common/include/linux/
           
           # 3. Aplicamos el parche a KernelSU, permitiendo que falle con '|| true'
-          # cd gki_kernel/KernelSU
-          # patch -p1 < 10_enable_susfs_for_ksu.patch || true
-          # cd ../..
+          cd gki_kernel/KernelSU
+          curl -L "https://github.com/utkustnr/KernelSU/commit/650d0db4d37a97f7a80edb998b526cb667b9b77c.patch" -o 10_enable_susfs_for_ksu.patch
+          patch -p1 < 10_enable_susfs_for_ksu.patch
+          cd ../..
 
           # 4. CORRECCIÓN MANUAL: Aplicamos el cambio del Hunk #7 con 'sed'.
           #    Esto inserta la llamada a 'ksu_load_allow_rules' en el lugar correcto de selinux.c
