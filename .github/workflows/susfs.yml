@@ -44,7 +44,7 @@ jobs:
           
           # 3. Aplicamos el parche a KernelSU, permitiendo que falle con '|| true'
           cd gki_kernel/KernelSU
-          curl -L "https://github.com/utkustnr/KernelSU/commit/650d0db4d37a97f7a80edb998b526cb667b9b77c.patch" -o 10_enable_susfs_for_ksu.patch
+          curl -L "https://gitlab.com/simonpunk/susfs4ksu/-/raw/gki-android12-5.10/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch" -o 10_enable_susfs_for_ksu.patch
           patch -p1 < 10_enable_susfs_for_ksu.patch
           cd ../..
 
