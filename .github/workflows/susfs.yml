@@ -26,27 +26,26 @@ jobs:
       - name: 4. Integrate KernelSU
         run: |
           cd gki_kernel
-          git clone https://github.com/tiann/KernelSU
+          git clone https://github.com/maxsteeel/KernelSU
           
-          bash KernelSU/kernel/setup.sh
+          bash KernelSU/kernel/setup.sh susfs-legacy
 
       # Paso 5: Integrar SUSFS para KernelSU (con Corrección Manual)
       - name: 5. Integrate SUSFS for KernelSU (with Patch Fix)
         run: |
           # 1. Clonamos el repositorio de susfs (sin cambios)
-          git clone --branch gki-android12-5.10 https://gitlab.com/simonpunk/susfs4ksu.git
+          git clone --branch kernel-5.4 https://gitlab.com/simonpunk/susfs4ksu.git
           
           # 2. Copiamos los parches y archivos (sin cambios)
           cp susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch gki_kernel/KernelSU/
-          cp susfs4ksu/kernel_patches/50_add_susfs_in_gki-android12-5.10.patch gki_kernel/common/
+          cp susfs4ksu/kernel_patches/50_add_susfs_in_kernel-5.4.patch gki_kernel/common/
           cp -r susfs4ksu/kernel_patches/fs/* gki_kernel/common/fs/
           cp -r susfs4ksu/kernel_patches/include/linux/* gki_kernel/common/include/linux/
           
           # 3. Aplicamos el parche a KernelSU, permitiendo que falle con '|| true'
-          cd gki_kernel/KernelSU
-          # curl -L "https://gitlab.com/simonpunk/susfs4ksu/-/raw/gki-android12-5.10/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch" -o 10_enable_susfs_for_ksu.patch
-          patch -p1 < 10_enable_susfs_for_ksu.patch
-          cd ../..
+          # cd gki_kernel/KernelSU
+          # patch -p1 < 10_enable_susfs_for_ksu.patch || true
+          # cd ../..
 
           # 4. CORRECCIÓN MANUAL: Aplicamos el cambio del Hunk #7 con 'sed'.
           #    Esto inserta la llamada a 'ksu_load_allow_rules' en el lugar correcto de selinux.c
@@ -54,9 +53,14 @@ jobs:
           
           # 5. Aplicamos el parche principal al kernel (este no debería fallar)
           cd gki_kernel/common
-          patch -p1 < 50_add_susfs_in_gki-android12-5.10.patch
+          patch -p1 < 50_add_susfs_in_kernel-5.4.patch
           cd ../..
           echo "SUSFS patches applied successfully"
+
+          curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/forcemodulesload.patch > gki_kernel/common/force_modules_load.patch
+          cd gki_kernel/common
+          patch -p1 < force_modules_load.patch
+          echo "Patching successful"
 
   
       
@@ -65,7 +69,7 @@ jobs:
       # Paso 7: Personalizar Versión del Kernel
       - name: 7. Set Custom Kernel Version
         run: |
-          sed -i 's/^echo "\$res"$/echo "-Max-X6525-GKI"/' gki_kernel/common/scripts/setlocalversion
+          sed -i 's/^echo "\$res"$/echo "-Max-X6525-KSU-SUSFS"/' gki_kernel/common/scripts/setlocalversion
           echo "Kernel version hardcoded to -lts-Max-X6525-GKI-KSU-SUSFS"
 
       # --- PROCESO DE COMPILACIÓN SIMPLIFICADO ---
@@ -82,6 +86,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: GKI-Build-Artifacts-5.4-Max-X6525-GSI
-          path: gki_kernel/out/android12-5.4/dist/
+          path: gki_kernel/out/android12-5.4/dist/Image
 
           
