@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     name: Build Kernel
-    runs-on: ubuntu-22.04
+    runs-on: buildjet-32vcpu-ubuntu-2204
     steps:
       # Pasos 1-4 (Sin cambios)
       - name: 1. Install Dependencies
@@ -29,7 +29,11 @@ jobs:
           git clone https://github.com/maxsteeel/KernelSU
           
           bash KernelSU/kernel/setup.sh
-          
+
+          curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/forcemodulesload.patch > gki_kernel/common/force_modules_load.patch
+          cd gki_kernel/common
+          patch -p1 < force_modules_load.patch
+          echo "Patching successful"
       # --- PASO MODIFICADO ---
       # Paso 6: Personalizar Versión del Kernel
       - name: 6. Set Custom Kernel Version
@@ -44,12 +48,12 @@ jobs:
           cd gki_kernel
           while true; do echo "Build in progress - $(date)"; sleep 300; done &
           # Usamos el GKI_DEFCONFIG_FRAGMENT y el BUILD_CONFIG por defecto de GKI
-          LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
+          BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
       
       # Paso 9: Subir el artefacto de compilación
       - name: 9. Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: GKI-Build-Artifacts-5.4-Max-X6525-GSI
-          path: gki_kernel/out/android12-5.4/dist/
+          path: gki_kernel/out/android12-5.4/dist/Image
           
