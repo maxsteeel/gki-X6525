@@ -29,7 +29,11 @@ jobs:
           # git clone https://github.com/maxsteeel/KernelSU
           
           # bash KernelSU/kernel/setup.sh
-          
+
+          curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/forcemodulesload.patch > gki_kernel/common/force_modules_load.patch
+          cd gki_kernel/common
+          patch -p1 < force_modules_load.patch
+          echo "Patching successful"
       # --- PASO MODIFICADO ---
       # Paso 6: Personalizar Versión del Kernel
       - name: 6. Set Custom Kernel Version
