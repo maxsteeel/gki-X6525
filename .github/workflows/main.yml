@@ -1,7 +1,6 @@
-# Nombre del workflow
+
 name: Build GKI Kernel with KernelSU
 
-# Cómo se activa este workflow
 on:
   workflow_dispatch:
 
@@ -10,7 +9,6 @@ jobs:
     name: Build Kernel
     runs-on: buildjet-32vcpu-ubuntu-2204
     steps:
-      # Pasos 1-4 (Sin cambios)
       - name: 1. Install Dependencies
         run: |
           sudo apt-get update && sudo apt-get install -y --no-install-recommends curl git bc bison build-essential curl flex g++-multilib gcc-multilib gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev libelf-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
@@ -30,27 +28,22 @@ jobs:
           
           bash KernelSU/kernel/setup.sh
 
-          curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/forcemodulesload.patch > gki_kernel/common/force_modules_load.patch
-          cd gki_kernel/common
+          curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/forcemodulesload.patch > common/force_modules_load.patch
+          cd common
           patch -p1 < force_modules_load.patch
           echo "Patching successful"
-      # --- PASO MODIFICADO ---
-      # Paso 6: Personalizar Versión del Kernel
+
       - name: 6. Set Custom Kernel Version
         run: |
           sed -i 's/^echo "\$res"$/echo "-Max-X6525-KSU-GKI"/' gki_kernel/common/scripts/setlocalversion
           echo "Kernel version hardcoded to -Max-X6525-KSU-GKI"
 
-      # --- PROCESO DE COMPILACIÓN SIMPLIFICADO ---
-      # Paso 7: Compilar el Kernel (Primer Intento)
-      - name: 7. Build Kernel (First Attempt)
+      - name: 7. Build Kernel
         run: |
           cd gki_kernel
           while true; do echo "Build in progress - $(date)"; sleep 300; done &
-          # Usamos el GKI_DEFCONFIG_FRAGMENT y el BUILD_CONFIG por defecto de GKI
           BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
-      
-      # Paso 9: Subir el artefacto de compilación
+
       - name: 9. Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
