@@ -7,7 +7,7 @@ on:
 jobs:
   build:
     name: Build Unisoc Kernel
-    runs-on: ubuntu-22.04
+    runs-on: buildjet-32vcpu-ubuntu-2204
     steps:
       # Pasos 1 y 2 (Sin cambios)
       - name: 1. Free Up Disk Space
@@ -25,52 +25,25 @@ jobs:
           
           # LA SOLUCIÓN: Usamos repo como fue diseñado, apuntando a un repositorio de manifiesto real.
           # REEMPLAZA LA URL con la de tu repositorio de manifiesto.
-          repo init -u https://github.com/maxsteeel/manifest/ -b main
+          repo init -u https://github.com/maxsteeel/manifest/ -b main --depth 1
           
-          repo sync --no-clone-bundle -j$(nproc --all)
+          repo sync -c --no-tags --no-clone-bundle -j$(nproc --all)
           
-          # Hacemos checkout al commit específico del kernel
-          cd common && git checkout 219d54332a09e8d8741c1e1982f5eae56099de85 && cd ..
 
       # Paso 4: Integrar KernelSU-Next
       - name: 4. Integrate KernelSU-Next
         run: |
           cd kernel-build/common
-          git clone https://github.com/KernelSU-Next/KernelSU-Next.git KernelSU
+          git clone https://github.com/rsuntk/KernelSU
           bash KernelSU/kernel/setup.sh
-          echo "KernelSU-Next integrated."
+          echo "KernelSU integrated."
           
       # Paso 5: Compilar
       - name: 5. Configure and Build the Kernel
         run: |
           cd kernel-build
-          cat <<EOF > common/build.config.unisoc
-          ARCH=arm64
-          CLANG_TRIPLE=aarch64-linux-gnu-
-          CROSS_COMPILE=aarch64-linux-android-
-          LINUX_GCC_CROSS_COMPILE_PREBUILTS_BIN=prebuilts/gcc-aarch64/bin
-          MAKE_GOALS="
-          Image
-          "
-          FILES="
-          arch/arm64/boot/Image
-          "
-          CC=clang
-          LD=ld.lld
-          NM=llvm-nm
-          OBJCOPY=llvm-objcopy
-          DEPMOD=depmod
-          CLANG_PREBUILT_BIN=prebuilts-master/clang/host/linux-x86/clang-r383902/bin
-          BUILDTOOLS_PREBUILT_BIN=build/build-tools/path/linux-x86
-          EXTRA_CMDS=''
-          STOP_SHIP_TRACEPRINTK=1
-          DEFCONFIG=defconfig
-          LTO=thin
-          KMI_ENFORCED=0
           
-          EOF
-          
-          BUILD_CONFIG=common/build.config.unisoc build/build.sh
+          BUILD_CONFIG=common/build.config.gki_unisoc.aarch64 build/build.sh
 
       # Paso 6: Subir los artefactos
       - name: 6. Upload Build Artifacts
