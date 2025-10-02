@@ -25,13 +25,13 @@ jobs:
           
           # LA SOLUCIÓN: Usamos repo como fue diseñado, apuntando a un repositorio de manifiesto real.
           # REEMPLAZA LA URL con la de tu repositorio de manifiesto.
-          repo init -u https://github.com/maxsteeel/manifest/ -b main --depth 1
+          repo init -u https://github.com/maxsteeel/manifest/ -b main
           
           repo sync -c --no-tags --no-clone-bundle -j$(nproc --all)
           
 
       # Paso 4: Integrar KernelSU-Next
-      - name: 4. Integrate KernelSU-Next
+      - name: 4. Integrate KernelSU
         run: |
           cd kernel-build/common
           git clone https://github.com/rsuntk/KernelSU
