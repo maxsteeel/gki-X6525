@@ -52,4 +52,4 @@ jobs:
         with:
           name: Unisoc-Kernel-Repo-Build
           path: |
-            kernel-build/out/dist/
+            kernel-build/out/android12-5.4/dist
