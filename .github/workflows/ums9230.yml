@@ -26,7 +26,7 @@ jobs:
           
           # LA SOLUCIÓN: Usamos repo como fue diseñado, apuntando a un repositorio de manifiesto real.
           # REEMPLAZA LA URL con la de tu repositorio de manifiesto.
-          repo init -u https://github.com/maxsteeel/manifest/ -b main
+          repo init -u https://github.com/maxsteeel/manifest/ -b test
           
           repo sync -c --no-tags --no-clone-bundle -j$(nproc --all)
 
@@ -47,7 +47,7 @@ jobs:
         run: |
           cd kernel-build
           
-          BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
+          BUILD_CONFIG=common/build.config.gki_unisoc.aarch64 build/build.sh
 
       # Paso 6: Subir los artefactos
       - name: 6. Upload Build Artifacts
