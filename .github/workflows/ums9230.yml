@@ -28,7 +28,7 @@ jobs:
           # REEMPLAZA LA URL con la de tu repositorio de manifiesto.
           repo init -u https://github.com/maxsteeel/manifest/ -b test
           
-          repo sync -c --no-tags --no-clone-bundle -j$(nproc --all)
+          repo sync -c --no-tags --no-clone-bundle -j4
 
       # Paso 4: Integrar KernelSU-Next
       - name: 4. Integrate KernelSU and Patch
