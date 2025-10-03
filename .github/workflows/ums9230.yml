@@ -49,7 +49,7 @@ jobs:
           curl https://raw.githubusercontent.com/maxsteeel/android_kernel5.4_sprd/refs/heads/main/arch/arm64/configs/X6525.fragment > common/arch/arm64/configs/X6525.fragment
           curl https://raw.githubusercontent.com/maxsteeel/android_kernel5.4_sprd/refs/heads/main/build.config.X6525.test > common/build.config.X6525
           
-          BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
+          BUILD_CONFIG=common/build.config.gki-debug.aarch64 build/build.sh
 
       # Paso 6: Subir los artefactos
       - name: 6. Upload Build Artifacts
