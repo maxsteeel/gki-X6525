@@ -34,7 +34,7 @@ jobs:
       - name: 4. Integrate KernelSU and Patch
         run: |
           cd kernel-build/common
-          git clone https://github.com/rsuntk/KernelSU
+          git clone https://github.com/maxsteeel/KernelSU
           bash KernelSU/kernel/setup.sh
           echo "KernelSU integrated."
 
