@@ -32,12 +32,16 @@ jobs:
           
 
       # Paso 4: Integrar KernelSU-Next
-      - name: 4. Integrate KernelSU
+      - name: 4. Integrate KernelSU and Patch
         run: |
           cd kernel-build/common
           git clone https://github.com/rsuntk/KernelSU
           bash KernelSU/kernel/setup.sh
           echo "KernelSU integrated."
+
+          curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/forcemodulesload.patch > force_modules_load.patch
+          patch -p1 < force_modules_load.patch
+          echo "Patching successful"
           
       # Paso 5: Compilar
       - name: 5. Configure and Build the Kernel
@@ -52,4 +56,5 @@ jobs:
         with:
           name: Unisoc-Kernel-Repo-Build
           path: |
-            kernel-build/out/android12-5.4/dist
+            kernel-build/out/android12-5.4/dist/Image
+            kernel-build/out/android12-5.4/dist/*.ko
