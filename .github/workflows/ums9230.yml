@@ -29,7 +29,6 @@ jobs:
           repo init -u https://github.com/maxsteeel/manifest/ -b main
           
           repo sync -c --no-tags --no-clone-bundle -j$(nproc --all)
-          
 
       # Paso 4: Integrar KernelSU-Next
       - name: 4. Integrate KernelSU and Patch
@@ -47,7 +46,9 @@ jobs:
       - name: 5. Configure and Build the Kernel
         run: |
           cd kernel-build
-          
+          MODULES_STAGING_DIR="${PWD}/out/android12-5.4/staging_modules"
+          mkdir -p ${MODULES_STAGING_DIR}
+          echo 'POST_KERNEL_BUILD_CMDS="make INSTALL_MOD_PATH=${MODULES_STAGING_DIR} modules_install"' >> common/build.config.gki_unisoc.aarch6
           BUILD_CONFIG=common/build.config.gki_unisoc.aarch64 build/build.sh
 
       # Paso 6: Subir los artefactos
@@ -57,4 +58,4 @@ jobs:
           name: Unisoc-Kernel-Repo-Build
           path: |
             kernel-build/out/android12-5.4/dist/Image
-            kernel-build/out/android12-5.4/dist/*.ko
+            kernel-build/out/android12-5.4/staging_modules/
