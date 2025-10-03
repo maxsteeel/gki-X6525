@@ -47,7 +47,7 @@ jobs:
         run: |
           cd kernel-build
           
-          BUILD_CONFIG=common/build.config.X6525 build/build.sh
+          BUILD_CONFIG=common/build.config.X6525.test build/build.sh
 
       # Paso 6: Subir los artefactos
       - name: 6. Upload Build Artifacts
