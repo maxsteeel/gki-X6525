@@ -44,7 +44,7 @@ jobs:
           while true; do echo "Build in progress - $(date)"; sleep 300; done &
           curl https://raw.githubusercontent.com/maxsteeel/android_kernel5.4_sprd/refs/heads/main/arch/arm64/configs/X6525.fragment > common/arch/arm64/configs/X6525.fragment
           curl https://raw.githubusercontent.com/maxsteeel/android_kernel5.4_sprd/refs/heads/main/build.config.X6525.test > common/build.config.X6525
-          
+          curl https://raw.githubusercontent.com/maxsteeel/android_kernel5.4_sprd/refs/heads/main/arch/arm64/configs/X6525_stock_defconfig > common/arch/arm64/configs/X6525_stock_defconfig
           BUILD_CONFIG=common/build.config.X6525 build/build.sh
 
 
