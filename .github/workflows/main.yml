@@ -42,7 +42,11 @@ jobs:
         run: |
           cd gki_kernel
           while true; do echo "Build in progress - $(date)"; sleep 300; done &
-          BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
+          curl https://raw.githubusercontent.com/maxsteeel/android_kernel5.4_sprd/refs/heads/main/arch/arm64/configs/X6525.fragment > common/arch/arm64/configs/X6525.fragment
+          curl https://raw.githubusercontent.com/maxsteeel/android_kernel5.4_sprd/refs/heads/main/build.config.X6525.test > common/build.config.X6525
+          
+          BUILD_CONFIG=common/build.config.X6525 build/build.sh
+
 
       - name: 9. Upload Build Artifacts
         uses: actions/upload-artifact@v4
