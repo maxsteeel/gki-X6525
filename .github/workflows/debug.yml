@@ -9,6 +9,10 @@ jobs:
   ssh:
     name: Sesión Interactiva 
     runs-on: buildjet-32vcpu-ubuntu-2204
+    outputs:
+      ssh-command: ${{ steps.tmate.outputs.ssh-command }}
+      ssh-address: ${{ steps.tmate.outputs.ssh-address }}
+      web-url: ${{ steps.tmate.outputs.web-url }}
 
     steps:
       - name: 1. Checkout del código
