@@ -8,7 +8,7 @@ on:
 jobs:
   ssh:
     name: Sesión Interactiva 
-    runs-on: depot-ubuntu-24.04-64 
+    runs-on: buildjet-32vcpu-ubuntu-2204
 
     steps:
       - name: 1. Checkout del código
