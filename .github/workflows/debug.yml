@@ -1,87 +1,26 @@
 # Nombre del workflow
-name: (DEBUG) Build GKI Kernel
+name: ssh
 
 # Cómo se activa este workflow
 on:
   workflow_dispatch:
 
 jobs:
-  build:
-    name: Build Kernel
-    runs-on: ubuntu-22.04
+  ssh:
+    name: Sesión Interactiva en Runner Potente
+    runs-on: buildjet-32vcpu-ubuntu-2204 
+
     steps:
-      # Pasos 1-4 (Sin cambios)
-      - name: 1. Install Dependencies
-        run: |
-          sudo apt-get update && sudo apt-get install -y --no-install-recommends git bc bison build-essential curl flex g++-multilib gcc-multilib gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev libelf-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
-      - name: 2. Setup Repo Tool
-        run: |
-          mkdir -p ~/bin && curl -s https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo && chmod a+x ~/bin/repo && echo "$HOME/bin" >> $GITHUB_PATH
-      - name: 3. Download Kernel Source
-        run: |
-          mkdir gki_kernel && cd gki_kernel
-          repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4 --no-repo-verify
-          sed -i 's|path="common" name="kernel/common" revision="android12-5.4"|path="common" name="kernel/common" revision="android12-5.4.210_r00"|' .repo/manifest.xml
-          repo sync -c --no-clone-bundle -j$(nproc --all)
-      - name: 4. Integrate KernelSU
-        run: |
-          cd gki_kernel
-          git clone https://github.com/tiann/KernelSU.git
-          cd KernelSU
-          git checkout v0.9.5 
-          cd ..
-          bash KernelSU/kernel/setup.sh v0.9.5
+      - name: 1. Checkout del código
+        uses: buildjet/checkout@v4
 
-      # --- PASO MODIFICADO ---
-      # Paso 5: Crear Fragmento de Configuración GKI-Nativo
-      - name: 5. Create GKI-Native Config Fragment
+      - name: 2. Instalar dependencias para compilar el kernel
         run: |
-          cd gki_kernel
-          # Este es nuestro nuevo fragmento. Lo construiremos en la Fase 2.
-          # Por ahora, puedes dejarlo así o añadir el bloque de la siguiente sección.
-          echo "CONFIG_KSU=y" > gki.fragment
-          echo "CONFIG_KSU_SUSFS=y" > gki.fragment
-          echo "CONFIG_PROC_FS=y" >> kernelsu.fragment
-          echo "CONFIG_CPU_IDLE=y" >> gki.fragment
-          echo "CONFIG_CPU_IDLE_GOV_MENU=y" >> gki.fragment
-          echo "CONFIG_ARM_CPUIDLE=y" >> gki.fragment
-          echo "CONFIG_ARM_PSCI_CPUIDLE=y" >> gki.fragment
-          echo "CONFIG_PM_GENERIC_DOMAINS_SLEEP=y" >> gki.fragment
-          echo "CONFIG_DRM=y" >> gki.fragment
-          echo "CONFIG_DRM_KMS_HELPER=y" >> gki.fragment
-          echo "CONFIG_DRM_MIPI_DSI=y" >> gki.fragment
-          echo "CONFIG_DRM_PANEL_SIMPLE=y" >> gki.fragment
-          echo "CONFIG_DRM_BRIDGE=y" >> gki.fragment
-          echo "CONFIG_DRM_PANEL_BRIDGE=y" >> gki.fragment
-          echo "CONFIG_PSTORE=y" >> gki.fragment
-          echo "CONFIG_PSTORE_CONSOLE=y" >> gki.fragment
-          echo "CONFIG_PSTORE_RAM=y" >> gki.fragment
-          echo "CONFIG_DEBUG_INFO=y" >> gki.fragment
-          echo "CONFIG_PANIC_ON_OOPS=y" >> gki.fragment
-          echo "CONFIG_PANIC_TIMEOUT=5" >> gki.fragment
-          echo 'CONFIG_CMDLINE="cgroup_disable=pressure video=DSI-1:720x1612@90 ramoops.mem_address=0x9ff00000 ramoops.mem_size=0x100000 ramoops.console_size=0x40000 ramoops.ftrace_size=0x40000 ramoops.pmsg_size=0x20000 androidboot.hardware=X6525 androidboot.ddrsize=3072M printk.devkmsg=on"' >> gki_debug.fragment
-
-      # --- PASO MODIFICADO ---
-      # Paso 6: Personalizar Versión del Kernel
-      - name: 6. Set Custom Kernel Version
-        run: |
-          echo 'CONFIG_LOCALVERSION="-Max-X6525-GKI"' >> gki_kernel/gki.fragment
-          echo '# CONFIG_LOCALVERSION_AUTO is not set' >> gki_kernel/gki.fragment
-          touch gki_kernel/common/.scmversion
-
-      # --- PROCESO DE COMPILACIÓN SIMPLIFICADO ---
-      # Paso 7: Compilar el Kernel (Primer Intento)
-      - name: 7. Build Kernel (First Attempt)
-        run: |
-          cd gki_kernel
-          while true; do echo "Build in progress - $(date)"; sleep 300; done &
-          # Usamos el GKI_DEFCONFIG_FRAGMENT y el BUILD_CONFIG por defecto de GKI
-          GKI_DEFCONFIG_FRAGMENT=gki.fragment LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
-      
-      # Paso 9: Subir el artefacto de compilación
-      - name: 9. Upload Build Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: GKI-Build-Artifacts-5.4-Max-X6525-GSI
-          path: gki_kernel/out/android12-5.4/dist/
+          sudo apt-get update
+          sudo apt-get install -y build-essential libncurses-dev bison flex libssl-dev libelf-dev git ccache
           
+      - name: 3. Iniciar Sesión SSH con tmate
+        # Esta acción pausa el workflow y te da acceso SSH.
+        # El workflow continuará aquí hasta que cierres la sesión SSH.
+        uses: mxschmitt/action-tmate@v3
+        
