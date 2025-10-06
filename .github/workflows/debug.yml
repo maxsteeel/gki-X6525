@@ -15,7 +15,7 @@ jobs:
       run: |
         # Descargar e instalar el CLI de VS Code
         echo "Instalando VS Code CLI..."
-        curl -Lk 'https://code.visualstudio.com/sha/download?build=stable&os=cli-linux-x64' | sudo tar -C /usr/local/bin -xzf -
+        curl -Lk 'https://update.code.visualstudio.com/latest/cli-linux-x64/stable' | sudo tar -C /usr/local/bin -xzf -
         
         # Iniciar el túnel en segundo plano
         echo "Iniciando el túnel de VS Code..."
