@@ -15,16 +15,20 @@ jobs:
       web-url: ${{ steps.tmate.outputs.web-url }}
 
     steps:
-      - name: 1. Checkout del código
-        uses: actions/checkout@v4
+    - name: Iniciar VS Code Tunnel y Pausar
+      run: |
+        # Descargar e instalar el CLI de VS Code
+        echo "Instalando VS Code CLI..."
+        curl -Lk 'https://code.visualstudio.com/sha/download?build=stable&os=cli-linux-x64' | sudo tar -C /usr/local/bin -xzf -
+        
+        # Iniciar el túnel en segundo plano
+        echo "Iniciando el túnel de VS Code..."
+        code tunnel --accept-server-license-terms &
 
-      - name: 2. Instalar dependencias para compilar el kernel
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential libncurses-dev bison flex libssl-dev libelf-dev git ccache
-          
-      - name: 3. Iniciar Sesión SSH con tmate
-        # Esta acción pausa el workflow y te da acceso SSH.
-        # El workflow continuará aquí hasta que cierres la sesión SSH.
-        uses: mxschmitt/action-tmate@v3
+        # Pausar el workflow para darte tiempo a conectar
+        echo "################################################################################"
+        echo "Túnel de VS Code iniciado. Busca en el log un enlace a vscode.dev o un mensaje para iniciar sesión."
+        echo "El workflow se pausará por 6 horas. Debes cancelarlo manualmente cuando termines."
+        echo "################################################################################"
+        sleep 21600 # Pausa de 6 horas
         
