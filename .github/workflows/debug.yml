@@ -8,7 +8,7 @@ on:
 jobs:
   ssh:
     name: Sesión Interactiva 
-    runs-on: buildjet-32vcpu-ubuntu-2204
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Iniciar VS Code Tunnel y Pausar
