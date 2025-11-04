@@ -21,49 +21,18 @@ jobs:
         run: |
           mkdir gki_kernel && cd gki_kernel
           repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4-lts --depth 1 --no-repo-verify
-          # sed -i 's|path="common" name="kernel/common" revision="android12-5.4"|path="common" name="kernel/common" revision="android12-5.4.210_r00"|' .repo/manifest.xml
           repo sync -c --no-tags --no-clone-bundle -j$(nproc --all)
-      - name: 4. Integrate KernelSU
+      - name: 4. Integrate KernelSU ( SukiSU )
         run: |
           cd gki_kernel
-          git clone https://github.com/maxsteeel/KernelSU
-          
-          bash KernelSU/kernel/setup.sh susfs-legacy
+          curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-main
 
       # Paso 5: Integrar SUSFS para KernelSU (con Corrección Manual)
       - name: 5. Integrate SUSFS for KernelSU (with Patch Fix)
         run: |
-          # 1. Clonamos el repositorio de susfs (sin cambios)
-          git clone --branch kernel-5.4 https://gitlab.com/simonpunk/susfs4ksu.git
-          
-          # 2. Copiamos los parches y archivos (sin cambios)
-          cp susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch gki_kernel/KernelSU/
-          cp susfs4ksu/kernel_patches/50_add_susfs_in_kernel-5.4.patch gki_kernel/common/
-          cp -r susfs4ksu/kernel_patches/fs/* gki_kernel/common/fs/
-          cp -r susfs4ksu/kernel_patches/include/linux/* gki_kernel/common/include/linux/
-          
-          # 3. Aplicamos el parche a KernelSU, permitiendo que falle con '|| true'
-          # cd gki_kernel/KernelSU
-          # patch -p1 < 10_enable_susfs_for_ksu.patch || true
-          # cd ../..
-
-          # 4. CORRECCIÓN MANUAL: Aplicamos el cambio del Hunk #7 con 'sed'.
-          #    Esto inserta la llamada a 'ksu_load_allow_rules' en el lugar correcto de selinux.c
-          # sed -i '/if (!is_ksud_present())/a \ \ \ \ ksu_load_allow_rules(cred);' gki_kernel/KernelSU/kernel/selinux/selinux.c
-          
-          # 5. Aplicamos el parche principal al kernel (este no debería fallar)
           cd gki_kernel/common
-          patch -p1 < 50_add_susfs_in_kernel-5.4.patch
-          cd ../..
-          echo "SUSFS patches applied successfully"
-
-          curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/forcemodulesload.patch > gki_kernel/common/force_modules_load.patch
-          cd gki_kernel/common
-          patch -p1 < force_modules_load.patch
-          echo "Patching successful"
-
-  
-      
+          curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/a42ff9c1fc8b1c6b13cf301cc6949f1c001a59e0/susfs_v1.5.12_kernel-5.4.diff > susfs_v1.5.12_kernel-5.4.diff
+          patch -p1 < susfs_v1.5.12_kernel-5.4.diff
           
       # --- PASO MODIFICADO ---
       # Paso 7: Personalizar Versión del Kernel
