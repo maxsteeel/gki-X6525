@@ -54,6 +54,53 @@ index 4f25015aa..099ab024d 100644
  	if (dentry->d_sb->s_magic != DEVPTS_SUPER_MAGIC)
  		return NULL;
  	return dentry->d_fsdata;
+diff --git a/fs/exec.c b/fs/exec.c
+index 5aa0d9ec7..a854f3b44 100644
+--- a/fs/exec.c
++++ b/fs/exec.c
+@@ -65,6 +65,9 @@
+ #include <linux/vmalloc.h>
+ 
+ #include <linux/uaccess.h>
++#ifdef CONFIG_KSU_SUSFS_SUS_SU
++#include <linux/susfs_def.h>
++#endif
+ #include <asm/mmu_context.h>
+ #include <asm/tlb.h>
+ 
+@@ -1736,6 +1739,13 @@ int search_binary_handler(struct linux_binprm *bprm)
+ }
+ EXPORT_SYMBOL(search_binary_handler);
+ 
++#ifdef CONFIG_KSU_SUSFS_SUS_SU
++extern bool susfs_is_sus_su_hooks_enabled __read_mostly;
++extern bool __ksu_is_allow_uid(uid_t uid);
++extern int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr, void *argv,
++				void *envp, int *flags);
++#endif
++
+ static int exec_binprm(struct linux_binprm *bprm)
+ {
+ 	pid_t old_pid, old_vpid;
+@@ -1774,6 +1784,18 @@ static int __do_execve_file(int fd, struct filename *filename,
+ 	if (IS_ERR(filename))
+ 		return PTR_ERR(filename);
+ 
++#ifdef CONFIG_KSU_SUSFS_SUS_SU
++	if (likely(susfs_is_current_proc_umounted())) {
++		goto orig_flow;
++	}
++	if (likely(susfs_is_sus_su_hooks_enabled) &&
++		unlikely(__ksu_is_allow_uid(current_uid().val)))
++	{
++		ksu_handle_execveat_sucompat(&fd, &filename, &argv, &envp, &flags);
++	}
++orig_flow:
++#endif
++
+ 	/*
+ 	 * We move the actual failure in case of RLIMIT_NPROC excess from
+ 	 * set*uid() to execve() because too many poorly written programs
 diff --git a/fs/namei.c b/fs/namei.c
 index 6f296f753..f39353c1f 100644
 --- a/fs/namei.c
@@ -866,8 +913,8 @@ index 3c6f0586a..e621a91b3 100644
 +		if (mnt->mnt_id == DEFAULT_KSU_MNT_ID) {
 +			continue;
 +		}
-+		mnt->mnt.susfs_mnt_id_backup = mnt->mnt_id;
-+		mnt->mnt_id = first_mnt_id++;
++		WRITE_ONCE(mnt->mnt.susfs_mnt_id_backup, READ_ONCE(mnt->mnt_id));
++		WRITE_ONCE(mnt->mnt_id, first_mnt_id++);
 +	}
 +	put_mnt_ns(mnt_ns);
 +}
@@ -1236,7 +1283,7 @@ index de12c6329..634bbf8f8 100644
 +			seq_put_decimal_ull(m, " ", ino);
 +			seq_putc(m, ' ');
 +			goto done;
-+}
++		}
 +#endif
 +#ifdef CONFIG_KSU_SUSFS_SUS_KSTAT
 +		if (unlikely(inode->i_mapping->flags & BIT_SUS_KSTAT)) {
@@ -1267,8 +1314,8 @@ index de12c6329..634bbf8f8 100644
 +		smap_gather_stats(vma, &mss);
 +		show_map_vma(m, vma);
 +		SEQ_PUT_DEC("Size:           ", vma->vm_end - vma->vm_start);
-+		SEQ_PUT_DEC(" kB\nKernelPageSize: ", 4);
-+		SEQ_PUT_DEC(" kB\nMMUPageSize:    ", 4);
++		SEQ_PUT_DEC(" kB\nKernelPageSize: ", vma_kernel_pagesize(vma));
++		SEQ_PUT_DEC(" kB\nMMUPageSize:    ", vma_mmu_pagesize(vma));
 +		seq_puts(m, " kB\n");
 +		__show_smap(m, &mss, false);
 +		seq_printf(m, "THPeligible:    %d\n", 0);
@@ -3856,22 +3903,6 @@ index 14de0c7bf..0c511cfc7 100644
  	return 0;
  }
  
-diff --git a/kernel/seccomp.c b/kernel/seccomp.c
-index 7dd423728..273ed6b17 100644
---- a/kernel/seccomp.c
-+++ b/kernel/seccomp.c
-@@ -505,6 +505,11 @@ static void __put_seccomp_filter(struct seccomp_filter *orig)
- 	}
- }
- 
-+void put_seccomp_filter(struct seccomp_filter *filter)
-+{
-+    __put_seccomp_filter(filter);
-+}
-+
- static void __seccomp_filter_release(struct seccomp_filter *orig)
- {
- 	/* Notify about any unused filters in the task's former filter tree. */
 diff --git a/kernel/sys.c b/kernel/sys.c
 index fa3f48a51..6f7f52367 100644
 --- a/kernel/sys.c
