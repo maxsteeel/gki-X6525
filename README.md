@@ -1,6 +1,6 @@
 # GKI X6525
 
-This is a version of the Generic Kernel Image by Google adapted to the Infinix Smart 8 and includes KernelSU (still in testing) 
+This is a version of the Generic Kernel Image by [Realme](https://github.com/maxsteeel/android_kernel_unisoc) adapted to the Infinix Smart 8 and includes KernelSU (still in testing) 
 
 This project will not receive any further updates until some bugs are fixed.
 
