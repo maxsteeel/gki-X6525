@@ -1,59 +1,21 @@
-# Nombre del workflow
-name: Build GKI Kernel
-
-# Cómo se activa este workflow
+name: Build GKI Kernel (tweaks branch)
 on:
   workflow_dispatch:
-
 jobs:
   build:
     name: Build Kernel
-    runs-on: ubuntu-22.04
+    runs-on: buildjet-64vcpu-ubuntu-latest
     steps:
-      # Pasos 1-4 (Sin cambios)
-      - name: 1. Install Dependencies
+      - name: Clone Kernel Source with Submodules
         run: |
-          sudo apt-get update && sudo apt-get install -y --no-install-recommends git bc bison build-essential curl flex g++-multilib gcc-multilib gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev libelf-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
-      - name: 2. Setup Repo Tool
+          git clone --recurse-submodules https://github.com/maxsteeel/android_kernel_unisoc -b tweaks common -j$(nproc --all)
+      - name: Build Kernel
         run: |
-          mkdir -p ~/bin && curl -s https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo && chmod a+x ~/bin/repo && echo "$HOME/bin" >> $GITHUB_PATH
-      - name: 3. Download Kernel Source
-        run: |
-          mkdir gki_kernel && cd gki_kernel
-          repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4-lts --depth 1 --no-repo-verify
-          
-          repo sync -c --no-tags --no-clone-bundle -j$(nproc --all)
-      - name: 4. Integrate KernelSU
-        run: |
-          cd gki_kernel
-          # git clone https://github.com/maxsteeel/KernelSU
-          
-          # bash KernelSU/kernel/setup.sh
-
-          curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/forcemodulesload.patch > gki_kernel/common/force_modules_load.patch
-          cd gki_kernel/common
-          patch -p1 < force_modules_load.patch
-          echo "Patching successful"
-      # --- PASO MODIFICADO ---
-      # Paso 6: Personalizar Versión del Kernel
-      - name: 6. Set Custom Kernel Version
-        run: |
-          sed -i 's/^echo "\$res"$/echo "-Max-X6525-GKI"/' gki_kernel/common/scripts/setlocalversion
-          echo "Kernel version hardcoded to -Max-X6525-GKI"
-
-      # --- PROCESO DE COMPILACIÓN SIMPLIFICADO ---
-      # Paso 7: Compilar el Kernel (Primer Intento)
-      - name: 7. Build Kernel (First Attempt)
-        run: |
-          cd gki_kernel
-          while true; do echo "Build in progress - $(date)"; sleep 300; done &
-          # Usamos el GKI_DEFCONFIG_FRAGMENT y el BUILD_CONFIG por defecto de GKI
-          LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
-      
-      # Paso 9: Subir el artefacto de compilación
-      - name: 9. Upload Build Artifacts
+          cd common
+          make O="out" unisoc_defconfig
+          make O="out" Image
+      - name: Upload Kernel (Image)
         uses: actions/upload-artifact@v4
         with:
-          name: GKI-Build-Artifacts-5.4-Max-X6525-GSI
-          path: gki_kernel/out/android12-5.4/dist/Image
-          
+          name: MaxStormKernel-Image-Tweaks
+          path: common/out/arch/arm64/boot/Image
