@@ -1,112 +1,22 @@
-# Nombre del workflow
-name: Build GKI Kernel with KernelSU-Next
-
-# Cómo se activa este workflow
+name: Build GKI Kernel
 on:
   workflow_dispatch:
-
 jobs:
   build:
     name: Build Kernel
-    runs-on: ubuntu-22.04
+    runs-on: buildjet-64vcpu-ubuntu-latest
     steps:
-      # Pasos 1-3 (Sin cambios)
-      - name: 1. Install Dependencies
+      - name: Clone Kernel Source with Submodules
         run: |
-          sudo apt-get update && sudo apt-get install -y --no-install-recommends git bc bison build-essential curl flex g++-multilib gcc-multilib gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev libelf-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
-      - name: 2. Setup Repo Tool
-        run: |
-          mkdir -p ~/bin && curl -s https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo && chmod a+x ~/bin/repo && echo "$HOME/bin" >> $GITHUB_PATH
-      - name: 3. Download Kernel Source
-        run: |
-          mkdir gki_kernel && cd gki_kernel
-          repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.4-lts --no-repo-verify --depth 1
-          
-          repo sync -c --no-tags --no-clone-bundle -j$(nproc --all)
-      # --- PASO MODIFICADO Y CORREGIDO ---
-      # Paso 4: Integrar KernelSU-Next
-      - name: 4. Integrate KernelSU-Next
-        run: |
-          cd gki_kernel
           # 1. Usamos el repositorio CORRECTO de KernelSU-Next y lo clonamos en una carpeta llamada 'KernelSU'
-          git clone https://github.com/KernelSU-Next/KernelSU-Next.git
-
-          curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/forcemodulesload.patch > common/force_modules_load.patch
+          git clone --recurse-submodules https://github.com/maxsteeel/android_kernel_unisoc common -j$(nproc --all)
+      - name: Build Kernel
+        run: |
           cd common
-          patch -p1 < force_modules_load.patch
-          
-          cd ..
-          bash KernelSU-Next/kernel/setup.sh
-
-      
-      # Paso 6: Crear Fragmento de Configuración GKI-Nativo
-      - name: 6. Create GKI-Native Config
-        run: |
-          cd gki_kernel
-          
-          curl https://raw.githubusercontent.com/maxsteeel/gki-X6525/refs/heads/main/config_stock.txt >> common/arch/arm64/configs/fragment_defconfig
-          cp common/android/abi_gki_aarch64_unisoc common/android/abi_gki_aarch64
-          cat common/android/abi_gki_aarch64_transsion >> common/android/abi_gki_aarch64
-          
-      # Paso 7: Personalizar Versión del Kernel
-      - name: 7. Set Custom Kernel Version
-        run: |
-          sed -i 's/^echo "\$res"$/echo "-lts-Max-X6525-GKI-Next"/' gki_kernel/common/scripts/setlocalversion
-          echo "Kernel version hardcoded to -lts-Max-X6525-GKI-Next"
-      # Paso 8: Compilar el Kernel
-      - name: 8. Build Kernel
-        run: |
-          cd gki_kernel
-          
-          cat <<EOF > common/build.config.unisoc
-          . /home/runner/work/gki-X6525/gki-X6525/gki_kernel/common/build.config.aarch64
-          BRANCH=android12-5.4
-          KMI_GENERATION=9
-          LLVM=1
-          DEPMOD=depmod
-          CLANG_PREBUILT_BIN=prebuilts-master/clang/host/linux-x86/clang-r416183b/bin
-          BUILDTOOLS_PREBUILT_BIN=build/build-tools/path/linux-x86
-          KCFLAGS="${KCFLAGS} -D__ANDROID_COMMON_KERNEL__"
-          EXTRA_CMDS=''
-          STOP_SHIP_TRACEPRINTK=1
-          
-          ABI_DEFINITION=android/abi_gki_aarch64.xml
-          KMI_SYMBOL_LIST=android/abi_gki_aarch64
-          ADDITIONAL_KMI_SYMBOL_LISTS="
-          android/abi_gki_aarch64_unisoc
-          android/abi_gki_aarch64_transsion
-          "
-          
-          DEFCONFIG=fragment_defconfig
-          
-          KMI_ENFORCED=1
-          TRIM_NONLISTED_KMI=0
-          KMI_SYMBOL_LIST_STRICT_MODE=0
-          IN_KERNEL_MODULES=1
-          DO_NOT_STRIP_MODULES=1
-          
-          MODULES_ORDER=android/gki_aarch64_modules
-          KERNEL_CMDLINE=""
-          
-          LTO=thin
-          EOF
-          
-          mkdir out && cd out && mkdir android12-5.4 && cd ..
-          
-          cp common/arch/arm64/configs/fragment_defconfig out/android12-5.4/.config
-          
-          while true; do echo "Build in progress - $(date)"; sleep 300; done &
-          
-          (make -C common O=../out/android12-5.4 LTO=thin olddefconfig) || true
-          
-          (LTO=thin BUILD_CONFIG=common/build.config.unisoc DEFCONFIG=fragment_defconfig build/build.sh) || true
-          
-          cp /home/runner/work/gki-X6525/gki-X6525/gki_kernel/out/android12-5.4/common/modules.order common/android/gki_aarch64_modules
-          
-          LTO=thin BUILD_CONFIG=common/build.config.unisoc DEFCONFIG=fragment_defconfig build/build.sh
-      # Paso 9: Subir el artefacto de compilación
-      - name: 9. Upload Build Artifacts
+          make O="out" unisoc_defconfig
+          make O="out" Image
+      - name: Upload Kernel (Image)
         uses: actions/upload-artifact@v4
         with:
           name: GKI-Build-Artifacts-5.4-Max-X6525-Next
-          path: gki_kernel/out/android12-5.4/dist/
+          path: common/out/arch/arm64/boot/Image
