@@ -14,8 +14,12 @@ jobs:
           cd common
           make O="out" unisoc_defconfig
           make O="out" Image
+      - name: Repack in AnyKernel3 zip
+        run: |
+          git clone https://github.com/maxsteeel/AnyKernel3
+          cp -rf common/out/arch/arm64/boot/Image AnyKernel3
       - name: Upload Kernel (Image)
         uses: actions/upload-artifact@v4
         with:
-          name: MaxStormKernel-Image-Tweaks
-          path: common/out/arch/arm64/boot/Image
+          name: AnyKernel3-MaxKernel-tweaks
+          path: AnyKernel3/*
