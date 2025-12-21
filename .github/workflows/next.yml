@@ -8,7 +8,6 @@ jobs:
     steps:
       - name: Clone Kernel Source with Submodules
         run: |
-          # 1. Usamos el repositorio CORRECTO de KernelSU-Next y lo clonamos en una carpeta llamada 'KernelSU'
           git clone --recurse-submodules https://github.com/maxsteeel/android_kernel_unisoc common -j$(nproc --all)
       - name: Build Kernel
         run: |
