@@ -1,4 +1,4 @@
-name: Build GKI Kernel
+name: Build GKI Kernel (master branch)
 on:
   workflow_dispatch:
 jobs:
