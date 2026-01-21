@@ -1,4 +1,4 @@
-name: Build GKI Kernel (tweaks branch)
+name: Build GKI Kernel (test branch)
 on:
   workflow_dispatch:
 jobs:
@@ -8,18 +8,27 @@ jobs:
     steps:
       - name: Clone Kernel Source with Submodules
         run: |
-          git clone --recurse-submodules https://github.com/maxsteeel/android_kernel_unisoc -b tweaks common -j$(nproc --all)
+          git clone --recurse-submodules https://github.com/maxsteeel/android_kernel_unisoc -b temp common -j$(nproc --all)
+      
+      - name: Update KernelSU-Next
+        run: |
+          cd KernelSU-Next
+          git checkout legacy
+          cd ..
+
       - name: Build Kernel
         run: |
           cd common
-          make O="out" unisoc_defconfig
+          make O="out" test_defconfig
           make O="out" Image
+
       - name: Repack in AnyKernel3 zip
         run: |
           git clone https://github.com/maxsteeel/AnyKernel3
           cp -rf common/out/arch/arm64/boot/Image AnyKernel3
+
       - name: Upload Kernel (Image)
         uses: actions/upload-artifact@v4
         with:
-          name: AnyKernel3-MaxKernel-tweaks
+          name: AnyKernel3-MaxKernel-temp
           path: AnyKernel3/*
