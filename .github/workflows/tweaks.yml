@@ -12,7 +12,7 @@ jobs:
       
       - name: Update KernelSU-Next
         run: |
-          cd KernelSU-Next
+          cd common/KernelSU-Next
           git checkout legacy
           cd ..
 
