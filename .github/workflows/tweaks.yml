@@ -1,4 +1,4 @@
-name: Build GKI Kernel (test branch)
+name: Build GKI Kernel (nomount branch)
 on:
   workflow_dispatch:
 jobs:
@@ -8,7 +8,7 @@ jobs:
     steps:
       - name: Clone Kernel Source with Submodules
         run: |
-          git clone --recurse-submodules https://github.com/maxsteeel/android_kernel_unisoc -b temp common -j$(nproc --all)
+          git clone --recurse-submodules https://github.com/maxsteeel/android_kernel_unisoc -b nomount common -j$(nproc --all)
       
       - name: Update KernelSU-Next
         run: |
